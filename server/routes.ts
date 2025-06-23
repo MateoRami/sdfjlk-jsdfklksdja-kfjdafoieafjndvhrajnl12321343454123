@@ -128,10 +128,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      const room = await storage.getRoomByCode(roomId.toString());
-      if (!room) {
+      const gameState = await storage.getGameState(roomId);
+      if (!gameState) {
         return res.status(404).json({ message: "Room not found" });
       }
+      const room = gameState.room;
 
       if (room.isGameOver) {
         return res.status(400).json({ message: "Game is over" });
@@ -178,8 +179,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createMove(moveData);
 
       // Get updated game state
-      const gameState = await storage.getGameState(room.id);
-      res.json(gameState);
+      const updatedGameState = await storage.getGameState(room.id);
+      res.json(updatedGameState);
     } catch (error) {
       console.error("Error making move:", error);
       res.status(500).json({ message: "Failed to make move" });

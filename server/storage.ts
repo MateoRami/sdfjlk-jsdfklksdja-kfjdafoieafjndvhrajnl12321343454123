@@ -45,6 +45,8 @@ export class MemStorage implements IStorage {
     const room: Room = {
       ...insertRoom,
       id,
+      errors: insertRoom.errors || 0,
+      isGameOver: insertRoom.isGameOver || false,
       createdAt: new Date(),
     };
     this.rooms.set(id, room);
@@ -69,6 +71,8 @@ export class MemStorage implements IStorage {
     const player: Player = {
       ...insertPlayer,
       id,
+      selectedCell: insertPlayer.selectedCell || null,
+      isOnline: insertPlayer.isOnline !== undefined ? insertPlayer.isOnline : true,
       lastSeen: new Date(),
     };
     this.players.set(id, player);
@@ -97,6 +101,7 @@ export class MemStorage implements IStorage {
     const move: Move = {
       ...insertMove,
       id,
+      value: insertMove.value || null,
       timestamp: new Date(),
     };
     this.moves.set(id, move);

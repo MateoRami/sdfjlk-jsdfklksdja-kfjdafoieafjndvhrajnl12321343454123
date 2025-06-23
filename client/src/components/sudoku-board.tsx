@@ -79,7 +79,7 @@ export default function SudokuBoard({
     return className;
   };
 
-  if (!board.length) {
+  if (!board || !board.length || !lockedCells || !lockedCells.length) {
     return <div className="flex justify-center items-center h-96">Cargando tablero...</div>;
   }
 

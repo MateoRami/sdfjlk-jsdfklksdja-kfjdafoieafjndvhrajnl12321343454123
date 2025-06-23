@@ -76,9 +76,13 @@ export function getProgress(board: number[][]): { completed: number; total: numb
   let completed = 0;
   const total = 81;
   
+  if (!board || board.length === 0) {
+    return { completed: 0, total };
+  }
+  
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
-      if (board[i][j] !== 0) completed++;
+      if (board[i] && board[i][j] !== 0) completed++;
     }
   }
   

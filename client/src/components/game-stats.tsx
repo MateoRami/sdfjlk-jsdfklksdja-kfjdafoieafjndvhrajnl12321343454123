@@ -10,7 +10,7 @@ interface GameStatsProps {
 }
 
 export default function GameStats({ board, moves, errors }: GameStatsProps) {
-  const progress = getProgress(board);
+  const progress = getProgress(board || []);
   const progressPercentage = Math.round((progress.completed / progress.total) * 100);
 
   return (
