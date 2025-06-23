@@ -34,6 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         board,
         solution,
         lockedCells,
+        notes: Array(9).fill(null).map(() => Array(9).fill(null).map(() => [])),
         errors: 0,
         isGameOver: false,
       });
@@ -46,6 +47,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nickname: playerNickname,
         color: playerColor,
         selectedCell: null,
+        highlightedNumber: null,
+        pencilMode: false,
         isOnline: true,
       });
 
@@ -89,6 +92,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nickname,
         color,
         selectedCell: null,
+        highlightedNumber: null,
+        pencilMode: false,
         isOnline: true,
       });
 
@@ -122,9 +127,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/rooms/:roomId/moves", async (req, res) => {
     try {
       const roomId = parseInt(req.params.roomId);
-      const { playerId, row, col, value } = req.body;
+      const { playerId, row, col, value, notes, moveType } = req.body;
 
-      if (playerId === undefined || row === undefined || col === undefined) {
+      if (playerId === undefined || row === undefined || col === undefined || !moveType) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
@@ -144,17 +149,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Cell is locked" });
       }
 
-      // Validate move
-      const solution = room.solution as number[][];
-      const isCorrect = value === null || solution[row][col] === value;
-
-      // Update board
       const board = room.board as number[][];
-      board[row][col] = value || 0;
-
+      const roomNotes = room.notes as number[][][];
+      const solution = room.solution as number[][];
+      let isCorrect = true;
       let newErrors = room.errors;
-      if (value !== null && !isCorrect) {
-        newErrors++;
+
+      if (moveType === 'number') {
+        // Validate move
+        isCorrect = value === null || solution[row][col] === value;
+        
+        // Update board
+        board[row][col] = value || 0;
+        
+        // Clear notes from this cell
+        roomNotes[row][col] = [];
+        
+        // If correct number, remove it from related notes
+        if (value !== null && isCorrect) {
+          removeNumberFromRelatedNotes(roomNotes, row, col, value);
+        }
+        
+        if (value !== null && !isCorrect) {
+          newErrors++;
+        }
+      } else if (moveType === 'note') {
+        // Update notes
+        roomNotes[row][col] = notes || [];
+        isCorrect = true; // Notes are always "correct"
+      } else if (moveType === 'clear') {
+        // Clear cell
+        board[row][col] = 0;
+        roomNotes[row][col] = [];
+        isCorrect = true;
       }
 
       const isGameOver = newErrors >= 3;
@@ -162,6 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update room
       await storage.updateRoom(room.id, {
         board,
+        notes: roomNotes,
         errors: newErrors,
         isGameOver,
       });
@@ -172,7 +200,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         playerId,
         row,
         col,
-        value,
+        value: moveType === 'number' ? value : null,
+        notes: moveType === 'note' ? notes : null,
+        moveType,
         isCorrect,
       });
 
@@ -191,12 +221,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/players/:playerId/selection", async (req, res) => {
     try {
       const playerId = parseInt(req.params.playerId);
-      const { row, col } = req.body;
+      const { row, col, highlightedNumber } = req.body;
 
       const selectedCell = (row !== undefined && col !== undefined) ? { row, col } : null;
 
       const player = await storage.updatePlayer(playerId, {
         selectedCell,
+        highlightedNumber: highlightedNumber || null,
         isOnline: true,
       });
 
@@ -208,6 +239,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating player selection:", error);
       res.status(500).json({ message: "Failed to update selection" });
+    }
+  });
+
+  // Toggle pencil mode
+  app.put("/api/players/:playerId/pencil", async (req, res) => {
+    try {
+      const playerId = parseInt(req.params.playerId);
+      const { pencilMode } = req.body;
+
+      const player = await storage.updatePlayer(playerId, {
+        pencilMode: pencilMode || false,
+        isOnline: true,
+      });
+
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      res.json(player);
+    } catch (error) {
+      console.error("Error updating pencil mode:", error);
+      res.status(500).json({ message: "Failed to update pencil mode" });
+    }
+  });
+
+  // Undo last move
+  app.post("/api/rooms/:roomId/undo/:playerId", async (req, res) => {
+    try {
+      const roomId = parseInt(req.params.roomId);
+      const playerId = parseInt(req.params.playerId);
+
+      const gameState = await storage.getGameState(roomId);
+      if (!gameState) {
+        return res.status(404).json({ message: "Room not found" });
+      }
+
+      // Get player's last move
+      const playerMoves = Array.from(storage['moves'].values())
+        .filter(move => move.roomId === roomId && move.playerId === playerId)
+        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+      if (playerMoves.length === 0) {
+        return res.status(400).json({ message: "No moves to undo" });
+      }
+
+      const lastMove = playerMoves[0];
+      const room = gameState.room;
+      const board = room.board as number[][];
+      const roomNotes = room.notes as number[][][];
+
+      // Revert the move
+      if (lastMove.moveType === 'number') {
+        board[lastMove.row][lastMove.col] = 0;
+      } else if (lastMove.moveType === 'note') {
+        roomNotes[lastMove.row][lastMove.col] = [];
+      }
+
+      // Remove the move from storage
+      storage['moves'].delete(lastMove.id);
+
+      // Update room
+      await storage.updateRoom(room.id, {
+        board,
+        notes: roomNotes,
+      });
+
+      // Get updated game state
+      const updatedGameState = await storage.getGameState(room.id);
+      res.json(updatedGameState);
+    } catch (error) {
+      console.error("Error undoing move:", error);
+      res.status(500).json({ message: "Failed to undo move" });
     }
   });
 
@@ -256,4 +359,25 @@ function createPuzzle(solution: number[][], filledCells: number): number[][] {
 
 function createLockedCells(board: number[][]): boolean[][] {
   return board.map(row => row.map(cell => cell !== 0));
+}
+
+function removeNumberFromRelatedNotes(notes: number[][][], row: number, col: number, number: number) {
+  // Remove from same row
+  for (let c = 0; c < 9; c++) {
+    notes[row][c] = notes[row][c].filter(n => n !== number);
+  }
+  
+  // Remove from same column
+  for (let r = 0; r < 9; r++) {
+    notes[r][col] = notes[r][col].filter(n => n !== number);
+  }
+  
+  // Remove from same 3x3 box
+  const boxRow = Math.floor(row / 3) * 3;
+  const boxCol = Math.floor(col / 3) * 3;
+  for (let r = boxRow; r < boxRow + 3; r++) {
+    for (let c = boxCol; c < boxCol + 3; c++) {
+      notes[r][c] = notes[r][c].filter(n => n !== number);
+    }
+  }
 }

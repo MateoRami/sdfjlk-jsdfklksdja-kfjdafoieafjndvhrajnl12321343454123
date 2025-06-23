@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Circle, Crown } from "lucide-react";
+import { Circle, Crown, Pencil } from "lucide-react";
 import type { Player } from "@shared/schema";
 
 interface PlayerListProps {
@@ -12,6 +12,9 @@ export default function PlayerList({ players, currentPlayer }: PlayerListProps) 
     if (player.selectedCell) {
       const cell = player.selectedCell as any;
       return `Editando celda (${cell.row + 1},${cell.col + 1})`;
+    }
+    if (player.pencilMode) {
+      return "Modo lápiz activo";
     }
     return "Observando";
   };
@@ -53,6 +56,12 @@ export default function PlayerList({ players, currentPlayer }: PlayerListProps) 
                   <Badge variant="outline" className="text-blue-600">
                     <Crown className="w-3 h-3 mr-1" />
                     Tú
+                  </Badge>
+                )}
+                {player.pencilMode && (
+                  <Badge variant="outline" className="text-purple-600">
+                    <Pencil className="w-3 h-3 mr-1" />
+                    Lápiz
                   </Badge>
                 )}
                 <Badge variant="outline" className="text-green-600">

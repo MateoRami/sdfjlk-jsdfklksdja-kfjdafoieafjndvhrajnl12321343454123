@@ -96,6 +96,13 @@ This is a real-time collaborative Sudoku web application built with React, Expre
 ```
 Changelog:
 - June 23, 2025. Initial setup
+- June 23, 2025. Added advanced board features:
+  * Pencil mode for collaborative notes
+  * Smart note removal when correct numbers are placed
+  * Clear and Undo functionality
+  * Number highlighting and collaborative cell highlighting
+  * Enhanced visual feedback for row/column/box relationships
+  * Mobile-friendly number input pad
 ```
 
 ## User Preferences

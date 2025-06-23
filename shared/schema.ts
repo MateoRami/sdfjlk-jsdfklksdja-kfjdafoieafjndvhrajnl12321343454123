@@ -10,6 +10,7 @@ export const rooms = pgTable("rooms", {
   board: jsonb("board").notNull(), // 9x9 array of numbers (0 for empty)
   solution: jsonb("solution").notNull(), // 9x9 array with complete solution
   lockedCells: jsonb("locked_cells").notNull(), // 9x9 array of booleans
+  notes: jsonb("notes").notNull().default('[]'), // 9x9 array of arrays with notes per cell
   errors: integer("errors").notNull().default(0),
   isGameOver: boolean("is_game_over").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -21,6 +22,8 @@ export const players = pgTable("players", {
   nickname: text("nickname").notNull(),
   color: text("color").notNull(),
   selectedCell: jsonb("selected_cell"), // {row: number, col: number} or null
+  highlightedNumber: integer("highlighted_number"), // number being highlighted by this player
+  pencilMode: boolean("pencil_mode").notNull().default(false),
   isOnline: boolean("is_online").notNull().default(true),
   lastSeen: timestamp("last_seen").defaultNow().notNull(),
 });
@@ -32,6 +35,8 @@ export const moves = pgTable("moves", {
   row: integer("row").notNull(),
   col: integer("col").notNull(),
   value: integer("value"), // null for delete
+  notes: jsonb("notes"), // array of numbers for notes
+  moveType: text("move_type").notNull(), // 'number', 'note', 'clear'
   isCorrect: boolean("is_correct").notNull(),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
@@ -60,7 +65,9 @@ export type InsertMove = z.infer<typeof insertMoveSchema>;
 
 // Additional types for game state
 export type SudokuBoard = number[][];
+export type SudokuNotes = number[][][]; // 9x9 array of arrays containing note numbers
 export type CellSelection = { row: number; col: number } | null;
+export type MoveType = 'number' | 'note' | 'clear';
 
 export type GameState = {
   room: Room;

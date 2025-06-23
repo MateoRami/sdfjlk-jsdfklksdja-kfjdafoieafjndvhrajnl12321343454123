@@ -10,7 +10,7 @@ import PlayerList from "@/components/player-list";
 import RoomModal from "@/components/room-modal";
 import GameStats from "@/components/game-stats";
 import { useToast } from "@/hooks/use-toast";
-import type { GameState, Player, Room } from "@shared/schema";
+import type { GameState, Player, Room, SudokuNotes, MoveType } from "@shared/schema";
 
 export default function Game() {
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
@@ -92,7 +92,7 @@ export default function Game() {
 
   // Make move mutation
   const makeMoveMutation = useMutation({
-    mutationFn: async (data: { row: number; col: number; value: number | null }) => {
+    mutationFn: async (data: { row: number; col: number; value?: number | null; notes?: number[]; moveType: MoveType }) => {
       const response = await apiRequest("POST", `/api/rooms/${currentRoom!.id}/moves`, {
         playerId: currentPlayer!.id,
         ...data,
@@ -113,9 +113,42 @@ export default function Game() {
 
   // Update player selection mutation
   const updateSelectionMutation = useMutation({
-    mutationFn: async (data: { row: number; col: number } | null) => {
+    mutationFn: async (data: { row: number; col: number; highlightedNumber?: number | null } | null) => {
       const response = await apiRequest("PUT", `/api/players/${currentPlayer!.id}/selection`, data || {});
       return response.json();
+    },
+  });
+
+  // Toggle pencil mode mutation
+  const togglePencilMutation = useMutation({
+    mutationFn: async (pencilMode: boolean) => {
+      const response = await apiRequest("PUT", `/api/players/${currentPlayer!.id}/pencil`, { pencilMode });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/rooms/${currentRoom?.id}/state`] });
+    },
+  });
+
+  // Undo mutation
+  const undoMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", `/api/rooms/${currentRoom!.id}/undo/${currentPlayer!.id}`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/rooms/${currentRoom?.id}/state`] });
+      toast({
+        title: "Movimiento deshecho",
+        description: "Se ha revertido tu último movimiento",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -134,11 +167,31 @@ export default function Game() {
   });
 
   const handleCellSelect = (row: number, col: number) => {
-    updateSelectionMutation.mutate({ row, col });
+    const board = gameState?.room.board as number[][];
+    const cellValue = board && board[row] ? board[row][col] : 0;
+    const highlightedNumber = cellValue !== 0 ? cellValue : null;
+    
+    updateSelectionMutation.mutate({ row, col, highlightedNumber });
   };
 
   const handleCellChange = (row: number, col: number, value: number | null) => {
-    makeMoveMutation.mutate({ row, col, value });
+    makeMoveMutation.mutate({ row, col, value, moveType: 'number' });
+  };
+
+  const handleNoteChange = (row: number, col: number, notes: number[]) => {
+    makeMoveMutation.mutate({ row, col, notes, moveType: 'note' });
+  };
+
+  const handleClear = (row: number, col: number) => {
+    makeMoveMutation.mutate({ row, col, moveType: 'clear' });
+  };
+
+  const handleUndo = () => {
+    undoMutation.mutate();
+  };
+
+  const handleTogglePencil = (enabled: boolean) => {
+    togglePencilMutation.mutate(enabled);
   };
 
   const handleLeaveRoom = () => {
@@ -239,11 +292,16 @@ export default function Game() {
               <SudokuBoard
                 board={gameState?.room.board as number[][] || []}
                 lockedCells={gameState?.room.lockedCells as boolean[][] || []}
+                notes={gameState?.room.notes as SudokuNotes || []}
                 players={gameState?.players || []}
                 currentPlayer={currentPlayer}
                 isGameOver={gameState?.room.isGameOver || false}
                 onCellSelect={handleCellSelect}
                 onCellChange={handleCellChange}
+                onNoteChange={handleNoteChange}
+                onClear={handleClear}
+                onUndo={handleUndo}
+                onTogglePencil={handleTogglePencil}
               />
 
               {/* Game Actions */}
