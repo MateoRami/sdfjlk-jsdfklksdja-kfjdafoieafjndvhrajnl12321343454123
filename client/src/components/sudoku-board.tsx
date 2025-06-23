@@ -57,25 +57,24 @@ export default function SudokuBoard({
   };
 
   const handleCellChange = (row: number, col: number, value: string) => {
-    if (isGameOver || lockedCells[row]?.[col]) return;
+    if (isGameOver || lockedCells[row]?.[col] || board[row][col] !== 0) return;
     
     const numValue = value === "" ? null : parseInt(value);
     if (numValue !== null && (numValue < 1 || numValue > 9)) return;
     
     if (currentPlayer.pencilMode && numValue !== null) {
       // Handle notes
-      const newNotes = [...pendingNotes];
-      if (newNotes.includes(numValue)) {
+      const currentNotes = notes[row] && notes[row][col] ? [...notes[row][col]] : [];
+      if (currentNotes.includes(numValue)) {
         // Remove note
-        const index = newNotes.indexOf(numValue);
-        newNotes.splice(index, 1);
+        const index = currentNotes.indexOf(numValue);
+        currentNotes.splice(index, 1);
       } else {
         // Add note
-        newNotes.push(numValue);
-        newNotes.sort();
+        currentNotes.push(numValue);
+        currentNotes.sort();
       }
-      setPendingNotes(newNotes);
-      onNoteChange(row, col, newNotes);
+      onNoteChange(row, col, currentNotes);
     } else {
       // Handle regular number input
       onCellChange(row, col, numValue);
@@ -102,15 +101,16 @@ export default function SudokuBoard({
                                   cellValue !== 0 && 
                                   cellValue === currentPlayer.highlightedNumber;
     
-    // Check if cell is in same row, column, or box as selected cell
-    const isInSameGroup = selectedCell && (
-      selectedCell.row === row || 
-      selectedCell.col === col || 
-      (Math.floor(selectedCell.row / 3) === Math.floor(row / 3) && 
-       Math.floor(selectedCell.col / 3) === Math.floor(col / 3))
+    // Check if cell is in same row, column, or box as current player's selected cell
+    const mySelectedCell = currentPlayer.selectedCell as any;
+    const isInMyGroup = mySelectedCell && (
+      mySelectedCell.row === row || 
+      mySelectedCell.col === col || 
+      (Math.floor(mySelectedCell.row / 3) === Math.floor(row / 3) && 
+       Math.floor(mySelectedCell.col / 3) === Math.floor(col / 3))
     );
     
-    let className = "relative w-10 h-10 text-center font-bold border-0 focus:ring-2 focus:ring-blue-500 text-gray-900 transition-all ";
+    let className = "relative w-10 h-10 text-center font-bold border-0 focus:ring-2 focus:ring-blue-500 text-gray-900 transition-all cursor-pointer ";
     
     if (isLocked) {
       className += "bg-gray-100 ";
@@ -120,12 +120,11 @@ export default function SudokuBoard({
     
     // Highlight same numbers
     if (shouldHighlightNumber) {
-      className += "bg-blue-100 ";
+      className += "bg-blue-200 ";
     }
     
-    // Highlight related cells (row, column, box)
-    if (isInSameGroup && selectedCell && currentPlayer.selectedCell) {
-      className += "bg-opacity-30 ";
+    // Highlight related cells for current player only
+    if (isInMyGroup && mySelectedCell && !isSelected) {
       const colorMap: Record<string, string> = {
         '#EF4444': 'bg-red-100',
         '#3B82F6': 'bg-blue-100',
@@ -135,8 +134,15 @@ export default function SudokuBoard({
         '#EC4899': 'bg-pink-100',
       };
       className += colorMap[currentPlayer.color] || 'bg-gray-100';
+      className += " bg-opacity-40 ";
     }
     
+    // Currently selected cell
+    if (isSelected) {
+      className += "ring-4 ring-blue-500 bg-blue-50 ";
+    }
+    
+    // Other players' selections
     if (playerColor && !isSelected) {
       className += `ring-2 `;
       const colorMap: Record<string, string> = {
@@ -170,6 +176,16 @@ export default function SudokuBoard({
     }
   };
 
+  // Handle keyboard input focus
+  const focusSelectedCell = () => {
+    if (selectedCell) {
+      const input = document.getElementById(`cell-${selectedCell.row}-${selectedCell.col}`);
+      if (input) {
+        input.focus();
+      }
+    }
+  };
+
   if (!board || !board.length || !lockedCells || !lockedCells.length) {
     return <div className="flex justify-center items-center h-96">Cargando tablero...</div>;
   }
@@ -177,21 +193,22 @@ export default function SudokuBoard({
   return (
     <div className="space-y-4">
       {/* Game Controls */}
-      <div className="flex justify-center space-x-2">
+      <div className="flex justify-center space-x-2 mb-2">
         <Button
           variant={currentPlayer.pencilMode ? "default" : "outline"}
           size="sm"
           onClick={handleTogglePencil}
           disabled={isGameOver}
+          className={currentPlayer.pencilMode ? "bg-purple-600 hover:bg-purple-700 text-white" : ""}
         >
           <Pencil className="w-4 h-4 mr-1" />
-          Modo Lápiz
+          {currentPlayer.pencilMode ? "Lápiz Activo" : "Modo Lápiz"}
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={handleClear}
-          disabled={isGameOver || !selectedCell}
+          disabled={isGameOver || !selectedCell || (selectedCell && lockedCells[selectedCell.row]?.[selectedCell.col])}
         >
           <Eraser className="w-4 h-4 mr-1" />
           Borrar
@@ -206,6 +223,13 @@ export default function SudokuBoard({
           Deshacer
         </Button>
       </div>
+      
+      {/* Status indicator */}
+      {currentPlayer.pencilMode && (
+        <div className="text-center text-sm text-purple-600 font-medium mb-2">
+          Modo lápiz activo - Haz clic en números para agregar/quitar notas
+        </div>
+      )}
 
       {/* Sudoku Board */}
       <div className="flex justify-center">
@@ -219,34 +243,49 @@ export default function SudokuBoard({
                   onClick={() => handleCellClick(rowIndex, colIndex)}
                 >
                   {lockedCells[rowIndex]?.[colIndex] || board[rowIndex][colIndex] !== 0 ? (
-                    <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-full h-full flex items-center justify-center text-lg font-bold">
                       {board[rowIndex][colIndex] !== 0 ? board[rowIndex][colIndex] : ''}
                     </div>
                   ) : (
                     <>
-                      <Input
-                        type="text"
-                        maxLength={1}
-                        value=""
-                        onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
-                        disabled={isGameOver}
-                        className="w-full h-full border-0 bg-transparent text-center font-bold p-0 focus:ring-0"
-                        style={{ 
-                          background: 'transparent',
-                          boxShadow: 'none'
-                        }}
-                      />
-                      {notes[rowIndex] && notes[rowIndex][colIndex] && notes[rowIndex][colIndex].length > 0 && (
+                      {/* Main number display or input */}
+                      <div className="w-full h-full flex items-center justify-center text-lg font-bold">
+                        {board[rowIndex][colIndex] !== 0 ? board[rowIndex][colIndex] : ''}
+                      </div>
+                      
+                      {/* Notes display */}
+                      {notes[rowIndex] && notes[rowIndex][colIndex] && notes[rowIndex][colIndex].length > 0 && board[rowIndex][colIndex] === 0 && (
                         <div className="absolute inset-0 pointer-events-none p-0.5">
-                          <div className="grid grid-cols-3 gap-0 w-full h-full text-xs text-gray-500">
+                          <div className="grid grid-cols-3 gap-0 w-full h-full">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                              <div key={num} className="flex items-center justify-center text-xs leading-none">
+                              <div key={num} className="flex items-center justify-center text-xs font-medium text-gray-600">
                                 {notes[rowIndex][colIndex].includes(num) ? num : ''}
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
+                      
+                      {/* Hidden input for keyboard capture */}
+                      <input
+                        id={`cell-${rowIndex}-${colIndex}`}
+                        type="text"
+                        maxLength={1}
+                        value=""
+                        onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Backspace' || e.key === 'Delete') {
+                            handleClear();
+                          }
+                        }}
+                        disabled={isGameOver}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        style={{ 
+                          background: 'transparent',
+                          border: 'none',
+                          outline: 'none'
+                        }}
+                      />
                     </>
                   )}
                 </div>
@@ -265,12 +304,16 @@ export default function SudokuBoard({
               variant="outline"
               size="sm"
               onClick={() => {
-                if (selectedCell) {
+                if (selectedCell && !lockedCells[selectedCell.row]?.[selectedCell.col] && board[selectedCell.row][selectedCell.col] === 0) {
                   handleCellChange(selectedCell.row, selectedCell.col, num.toString());
                 }
               }}
-              disabled={isGameOver || !selectedCell || lockedCells[selectedCell?.row]?.[selectedCell?.col]}
-              className="w-10 h-10 p-0"
+              disabled={isGameOver || !selectedCell || lockedCells[selectedCell?.row]?.[selectedCell?.col] || (selectedCell && board[selectedCell.row][selectedCell.col] !== 0)}
+              className={`w-10 h-10 p-0 ${
+                currentPlayer.pencilMode && selectedCell && notes[selectedCell.row] && notes[selectedCell.row][selectedCell.col] && notes[selectedCell.row][selectedCell.col].includes(num)
+                  ? 'bg-blue-100 border-blue-500' 
+                  : ''
+              }`}
             >
               {num}
             </Button>
