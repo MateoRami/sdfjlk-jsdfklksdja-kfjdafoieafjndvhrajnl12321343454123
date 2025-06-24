@@ -9,7 +9,7 @@ import { Puzzle } from "lucide-react";
 import { PLAYER_COLORS } from "@shared/schema";
 
 interface RoomModalProps {
-  onCreateRoom: (data: { difficulty: string; playerNickname: string; playerColor: string }) => void;
+  onCreateRoom: (data: { name: string; difficulty: string; playerNickname: string; playerColor: string }) => void;
   onJoinRoom: (data: { code: string; nickname: string; color: string }) => void;
   isCreating: boolean;
   isJoining: boolean;
@@ -20,6 +20,7 @@ export default function RoomModal({ onCreateRoom, onJoinRoom, isCreating, isJoin
   const [joinNickname, setJoinNickname] = useState("");
   const [joinColor, setJoinColor] = useState(PLAYER_COLORS[0]);
   
+  const [createName, setCreateName] = useState("");
   const [createDifficulty, setCreateDifficulty] = useState("medium");
   const [createNickname, setCreateNickname] = useState("");
   const [createColor, setCreateColor] = useState(PLAYER_COLORS[0]);
@@ -37,8 +38,9 @@ export default function RoomModal({ onCreateRoom, onJoinRoom, isCreating, isJoin
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (createDifficulty && createNickname && createColor) {
+    if (createName && createDifficulty && createNickname && createColor) {
       onCreateRoom({
+        name: createName,
         difficulty: createDifficulty,
         playerNickname: createNickname,
         playerColor: createColor,
@@ -117,6 +119,17 @@ export default function RoomModal({ onCreateRoom, onJoinRoom, isCreating, isJoin
             
             <TabsContent value="create">
               <form onSubmit={handleCreateSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="createName">Nombre de la Sala</Label>
+                  <Input
+                    id="createName"
+                    placeholder="Mi Sala de Sudoku"
+                    value={createName}
+                    onChange={(e) => setCreateName(e.target.value)}
+                    required
+                  />
+                </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="createDifficulty">Dificultad</Label>
                   <Select value={createDifficulty} onValueChange={setCreateDifficulty}>

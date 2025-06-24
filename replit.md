@@ -118,8 +118,6 @@ Changelog:
   * Improved Sudoku grid with thick borders between 3x3 blocks and thin borders between cells
   * Fixed border alignment issues ensuring proper block separation
   * Changed to uniform 4-sided borders for selected cells using border-4 instead of ring-4
-  * Simplified room creation: removed custom room name field, now uses generated code as room name
-  * Streamlined user experience by eliminating unnecessary room naming step
 ```
 
 ## User Preferences
