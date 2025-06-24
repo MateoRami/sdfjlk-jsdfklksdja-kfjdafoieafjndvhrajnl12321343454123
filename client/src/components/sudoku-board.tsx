@@ -84,6 +84,32 @@ export default function SudokuBoard({
     }
   };
 
+  // Helper function to get background color class for player color
+  const getPlayerBgColorClass = (playerColor: string, intensity: '200' | '300' = '200') => {
+    switch (playerColor) {
+      case '#EF4444': return `bg-red-${intensity}`;     // Rojo
+      case '#3B82F6': return `bg-blue-${intensity}`;    // Azul  
+      case '#10B981': return `bg-green-${intensity}`;   // Verde
+      case '#F59E0B': return `bg-yellow-${intensity}`;  // Amarillo
+      case '#8B5CF6': return `bg-purple-${intensity}`;  // Morado
+      case '#EC4899': return `bg-pink-${intensity}`;    // Rosa
+      default: return `bg-gray-${intensity}`;
+    }
+  };
+
+  // Helper function to get ring color class for player color
+  const getPlayerRingColorClass = (playerColor: string, size: '2' | '4' = '2') => {
+    switch (playerColor) {
+      case '#EF4444': return `ring-${size} ring-red-500`;     // Rojo
+      case '#3B82F6': return `ring-${size} ring-blue-500`;    // Azul
+      case '#10B981': return `ring-${size} ring-green-500`;   // Verde
+      case '#F59E0B': return `ring-${size} ring-yellow-500`;  // Amarillo
+      case '#8B5CF6': return `ring-${size} ring-purple-500`;  // Morado
+      case '#EC4899': return `ring-${size} ring-pink-500`;    // Rosa
+      default: return `ring-${size} ring-gray-500`;
+    }
+  };
+
   const getPlayerColorForCell = (row: number, col: number) => {
     const player = players.find(p => 
       p.id !== currentPlayer.id && // Exclude current player
@@ -116,7 +142,7 @@ export default function SudokuBoard({
     
     // Check if another player has this cell selected
     const otherPlayerColor = getPlayerColorForCell(row, col);
-    const isOtherPlayerCell = otherPlayerColor && !isMySelectedCell && !isMyServerSelectedCell;
+    const isOtherPlayerCell = !!otherPlayerColor;
     
     // Get my active selected cell for range highlighting
     const myActiveSelectedCell = selectedCell || (currentPlayer?.selectedCell as any);
@@ -139,39 +165,21 @@ export default function SudokuBoard({
       className += "bg-blue-200 ";
     }
     
-    // 2. Highlight my range (row/column/box) - USAR COLORES ESPECÍFICOS
+    // 2. Highlight my range (row/column/box) - Use player's color
     if (isInMyRange && !isMySelectedCell && !isMyServerSelectedCell && !isOtherPlayerCell) {
-      const playerColor = currentPlayer?.color;
-      if (playerColor === '#EF4444') className += "bg-red-200 ";           // Rojo
-      else if (playerColor === '#3B82F6') className += "bg-blue-200 ";     // Azul  
-      else if (playerColor === '#10B981') className += "bg-green-200 ";    // Verde
-      else if (playerColor === '#F59E0B') className += "bg-yellow-200 ";   // Amarillo
-      else if (playerColor === '#8B5CF6') className += "bg-purple-200 ";   // Morado
-      else if (playerColor === '#EC4899') className += "bg-pink-200 ";     // Rosa
-      else className += "bg-gray-200 ";
+      const playerColor = currentPlayer?.color || '#3B82F6';
+      className += getPlayerBgColorClass(playerColor, '200') + " ";
     }
     
-    // 3. Other players' selections - USAR COLORES ESPECÍFICOS
-    if (isOtherPlayerCell) {
-      if (otherPlayerColor === '#EF4444') className += "ring-2 ring-red-500 ";     // Rojo
-      else if (otherPlayerColor === '#3B82F6') className += "ring-2 ring-blue-500 ";   // Azul
-      else if (otherPlayerColor === '#10B981') className += "ring-2 ring-green-500 ";  // Verde
-      else if (otherPlayerColor === '#F59E0B') className += "ring-2 ring-yellow-500 "; // Amarillo
-      else if (otherPlayerColor === '#8B5CF6') className += "ring-2 ring-purple-500 "; // Morado
-      else if (otherPlayerColor === '#EC4899') className += "ring-2 ring-pink-500 ";   // Rosa
-      else className += "ring-2 ring-gray-500 ";
+    // 3. Other players' selections
+    if (isOtherPlayerCell && otherPlayerColor) {
+      className += getPlayerRingColorClass(otherPlayerColor, '2') + " ";
     }
     
-    // 4. My selected cell - USAR COLORES ESPECÍFICOS  
+    // 4. My selected cell - Use player's color with stronger styling
     if (isMySelectedCell || isMyServerSelectedCell) {
       const playerColor = currentPlayer?.color || '#3B82F6';
-      if (playerColor === '#EF4444') className += "ring-4 ring-red-500 bg-red-300 ";        // Rojo
-      else if (playerColor === '#3B82F6') className += "ring-4 ring-blue-500 bg-blue-300 ";    // Azul
-      else if (playerColor === '#10B981') className += "ring-4 ring-green-500 bg-green-300 ";  // Verde
-      else if (playerColor === '#F59E0B') className += "ring-4 ring-yellow-500 bg-yellow-300 ";// Amarillo
-      else if (playerColor === '#8B5CF6') className += "ring-4 ring-purple-500 bg-purple-300 ";// Morado
-      else if (playerColor === '#EC4899') className += "ring-4 ring-pink-500 bg-pink-300 ";    // Rosa
-      else className += "ring-4 ring-blue-500 bg-blue-300 ";
+      className += getPlayerRingColorClass(playerColor, '4') + " " + getPlayerBgColorClass(playerColor, '300') + " ";
     }
     
     return className;
