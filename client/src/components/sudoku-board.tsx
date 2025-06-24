@@ -140,12 +140,25 @@ export default function SudokuBoard({
                                    (currentPlayer.selectedCell as any).row === row && 
                                    (currentPlayer.selectedCell as any).col === col;
     
+    // Debug logging for cell 0,0
+    if (row === 0 && col === 0) {
+      console.log('DEBUG Cell 0,0:', {
+        selectedCell,
+        currentPlayerSelectedCell: currentPlayer?.selectedCell,
+        isMySelectedCell,
+        isMyServerSelectedCell,
+        currentPlayerColor: currentPlayer?.color
+      });
+    }
+    
     // Check if another player has this cell selected
     const otherPlayerColor = getPlayerColorForCell(row, col);
     const isOtherPlayerCell = !!otherPlayerColor;
     
     // Get my active selected cell for range highlighting
     const myActiveSelectedCell = selectedCell || (currentPlayer?.selectedCell as any);
+    
+    // Check if this cell is in my range (same row, column, or 3x3 box)
     const isInMyRange = myActiveSelectedCell && 
       myActiveSelectedCell.row !== undefined && 
       myActiveSelectedCell.col !== undefined && (
@@ -155,31 +168,33 @@ export default function SudokuBoard({
          Math.floor(myActiveSelectedCell.col / 3) === Math.floor(col / 3))
       );
     
+    // Exclude my selected cell from range highlighting
+    const isInMyRangeButNotSelected = isInMyRange && !isMySelectedCell && !isMyServerSelectedCell;
+    
     // Apply styling in order of priority
     
-    // 1. Highlight same numbers (lowest priority, only if no other highlighting)
-    const shouldHighlightNumber = currentPlayer?.highlightedNumber && 
-                                  cellValue !== 0 && 
-                                  cellValue === currentPlayer.highlightedNumber;
-    if (shouldHighlightNumber && !isInMyRange && !isMySelectedCell && !isMyServerSelectedCell && !isOtherPlayerCell) {
-      className += "bg-blue-200 ";
-    }
-    
-    // 2. Highlight my range (row/column/box) - Use player's color
-    if (isInMyRange && !isMySelectedCell && !isMyServerSelectedCell && !isOtherPlayerCell) {
-      const playerColor = currentPlayer?.color || '#3B82F6';
-      className += getPlayerBgColorClass(playerColor, '200') + " ";
-    }
-    
-    // 3. Other players' selections
-    if (isOtherPlayerCell && otherPlayerColor) {
-      className += getPlayerRingColorClass(otherPlayerColor, '2') + " ";
-    }
-    
-    // 4. My selected cell - Use player's color with stronger styling
+    // 1. My selected cell - HIGHEST PRIORITY - Use player's color with stronger styling
     if (isMySelectedCell || isMyServerSelectedCell) {
       const playerColor = currentPlayer?.color || '#3B82F6';
       className += getPlayerRingColorClass(playerColor, '4') + " " + getPlayerBgColorClass(playerColor, '300') + " ";
+    }
+    // 2. Other players' selections
+    else if (isOtherPlayerCell && otherPlayerColor) {
+      className += getPlayerRingColorClass(otherPlayerColor, '2') + " ";
+    }
+    // 3. Highlight my range (row/column/box) - Use player's color
+    else if (isInMyRangeButNotSelected && !isOtherPlayerCell) {
+      const playerColor = currentPlayer?.color || '#3B82F6';
+      className += getPlayerBgColorClass(playerColor, '200') + " ";
+    }
+    // 4. Highlight same numbers (lowest priority)
+    else {
+      const shouldHighlightNumber = currentPlayer?.highlightedNumber && 
+                                    cellValue !== 0 && 
+                                    cellValue === currentPlayer.highlightedNumber;
+      if (shouldHighlightNumber) {
+        className += "bg-blue-200 ";
+      }
     }
     
     return className;
