@@ -140,14 +140,15 @@ export default function SudokuBoard({
                                    (currentPlayer.selectedCell as any).row === row && 
                                    (currentPlayer.selectedCell as any).col === col;
     
-    // Debug logging for cell 0,0
-    if (row === 0 && col === 0) {
-      console.log('DEBUG Cell 0,0:', {
+    // Debug logging for selected cell
+    if (isMySelectedCell || isMyServerSelectedCell) {
+      console.log(`DEBUG Selected Cell [${row},${col}]:`, {
         selectedCell,
         currentPlayerSelectedCell: currentPlayer?.selectedCell,
         isMySelectedCell,
         isMyServerSelectedCell,
-        currentPlayerColor: currentPlayer?.color
+        currentPlayerColor: currentPlayer?.color,
+        finalClassName: className + (isMySelectedCell || isMyServerSelectedCell ? getPlayerRingColorClass(currentPlayer?.color || '#3B82F6', '4') + " " + getPlayerBgColorClass(currentPlayer?.color || '#3B82F6', '300') : '')
       });
     }
     
