@@ -105,7 +105,7 @@ export default function SudokuBoard({
     let className = "relative w-10 h-10 text-center font-bold border-0 focus:ring-2 focus:ring-blue-500 text-gray-900 transition-all duration-150 cursor-pointer ";
     
     if (isLocked) {
-      className += "bg-gray-100 ";
+      className += "bg-gray-300 ";
     } else {
       className += "bg-white focus:bg-blue-50 ";
     }
@@ -157,17 +157,32 @@ export default function SudokuBoard({
                          Math.floor(activeSelectedCell.col / 3) === Math.floor(col / 3);
       
       if ((isInSameRow || isInSameCol || isInSameBox) && !isCurrentPlayerCell && !hasOtherPlayerSelection) {
-        // Apply background highlight with current player's color (more opaque)
-        const colorMap: Record<string, string> = {
-          '#EF4444': 'bg-red-200',
-          '#3B82F6': 'bg-blue-200', 
-          '#10B981': 'bg-green-200',
-          '#F59E0B': 'bg-yellow-200',
-          '#8B5CF6': 'bg-purple-200',
-          '#EC4899': 'bg-pink-200',
-        };
-        const bgColor = colorMap[currentPlayer?.color || ''] || 'bg-gray-200';
-        className = className.replace('bg-white', bgColor).replace('bg-gray-100', bgColor);
+        // Apply background highlight with current player's color
+        if (isLocked) {
+          // For locked cells, use darker shade of player color
+          const colorMap: Record<string, string> = {
+            '#EF4444': 'bg-red-400',
+            '#3B82F6': 'bg-blue-400', 
+            '#10B981': 'bg-green-400',
+            '#F59E0B': 'bg-yellow-400',
+            '#8B5CF6': 'bg-purple-400',
+            '#EC4899': 'bg-pink-400',
+          };
+          const bgColor = colorMap[currentPlayer?.color || ''] || 'bg-gray-400';
+          className = className.replace('bg-gray-300', bgColor);
+        } else {
+          // For regular cells, use lighter shade
+          const colorMap: Record<string, string> = {
+            '#EF4444': 'bg-red-200',
+            '#3B82F6': 'bg-blue-200', 
+            '#10B981': 'bg-green-200',
+            '#F59E0B': 'bg-yellow-200',
+            '#8B5CF6': 'bg-purple-200',
+            '#EC4899': 'bg-pink-200',
+          };
+          const bgColor = colorMap[currentPlayer?.color || ''] || 'bg-gray-200';
+          className = className.replace('bg-white', bgColor);
+        }
       }
     }
     
