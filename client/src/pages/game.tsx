@@ -49,7 +49,7 @@ export default function Game() {
 
   // Create room mutation
   const createRoomMutation = useMutation({
-    mutationFn: async (data: { name: string; difficulty: string; playerNickname: string; playerColor: string }) => {
+    mutationFn: async (data: { difficulty: string; playerNickname: string; playerColor: string }) => {
       const response = await apiRequest("POST", "/api/rooms", data);
       return response.json();
     },

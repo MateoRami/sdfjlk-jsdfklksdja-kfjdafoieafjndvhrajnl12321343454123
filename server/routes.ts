@@ -9,9 +9,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create room
   app.post("/api/rooms", async (req, res) => {
     try {
-      const { name, difficulty, playerNickname, playerColor } = req.body;
+      const { difficulty, playerNickname, playerColor } = req.body;
       
-      if (!name || !difficulty || !playerNickname || !playerColor) {
+      if (!difficulty || !playerNickname || !playerColor) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
@@ -29,7 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const roomData = insertRoomSchema.parse({
         code,
-        name,
+        name: code, // Use the code as the name
         difficulty,
         board,
         solution,
