@@ -138,76 +138,39 @@ export default function SudokuBoard({
       className += "bg-blue-200 ";
     }
     
-    // 2. Highlight my range (row/column/box) - if in range but not my selected cell or other player's cell
+    // 2. Highlight my range (row/column/box) - USAR COLORES ESPECÍFICOS
     if (isInMyRange && !isMySelectedCell && !isMyServerSelectedCell && !isOtherPlayerCell) {
       const playerColor = currentPlayer?.color;
-      if (playerColor === '#EF4444') { // Rojo
-        className += "bg-red-200 ";
-      } else if (playerColor === '#3B82F6') { // Azul
-        className += "bg-blue-200 ";
-      } else if (playerColor === '#10B981') { // Verde
-        className += "bg-green-200 ";
-      } else if (playerColor === '#F59E0B') { // Amarillo
-        className += "bg-yellow-200 ";
-      } else if (playerColor === '#8B5CF6') { // Morado
-        className += "bg-purple-200 ";
-      } else if (playerColor === '#EC4899') { // Rosa
-        className += "bg-pink-200 ";
-      } else {
-        className += "bg-gray-200 ";
-      }
+      if (playerColor === '#EF4444') className += "bg-red-200 ";           // Rojo
+      else if (playerColor === '#3B82F6') className += "bg-blue-200 ";     // Azul  
+      else if (playerColor === '#10B981') className += "bg-green-200 ";    // Verde
+      else if (playerColor === '#F59E0B') className += "bg-yellow-200 ";   // Amarillo
+      else if (playerColor === '#8B5CF6') className += "bg-purple-200 ";   // Morado
+      else if (playerColor === '#EC4899') className += "bg-pink-200 ";     // Rosa
+      else className += "bg-gray-200 ";
     }
     
-    // 3. Other players' selections
+    // 3. Other players' selections - USAR COLORES ESPECÍFICOS
     if (isOtherPlayerCell) {
-      switch(otherPlayerColor) {
-        case '#EF4444':
-          className += "ring-2 ring-red-500 ";
-          break;
-        case '#3B82F6':
-          className += "ring-2 ring-blue-500 ";
-          break;
-        case '#10B981':
-          className += "ring-2 ring-green-500 ";
-          break;
-        case '#F59E0B':
-          className += "ring-2 ring-yellow-500 ";
-          break;
-        case '#8B5CF6':
-          className += "ring-2 ring-purple-500 ";
-          break;
-        case '#EC4899':
-          className += "ring-2 ring-pink-500 ";
-          break;
-        default:
-          className += "ring-2 ring-gray-500 ";
-      }
+      if (otherPlayerColor === '#EF4444') className += "ring-2 ring-red-500 ";     // Rojo
+      else if (otherPlayerColor === '#3B82F6') className += "ring-2 ring-blue-500 ";   // Azul
+      else if (otherPlayerColor === '#10B981') className += "ring-2 ring-green-500 ";  // Verde
+      else if (otherPlayerColor === '#F59E0B') className += "ring-2 ring-yellow-500 "; // Amarillo
+      else if (otherPlayerColor === '#8B5CF6') className += "ring-2 ring-purple-500 "; // Morado
+      else if (otherPlayerColor === '#EC4899') className += "ring-2 ring-pink-500 ";   // Rosa
+      else className += "ring-2 ring-gray-500 ";
     }
     
-    // 4. My selected cell (highest priority)
+    // 4. My selected cell - USAR COLORES ESPECÍFICOS  
     if (isMySelectedCell || isMyServerSelectedCell) {
-      switch(currentPlayer?.color || '#3B82F6') {
-        case '#EF4444': // Rojo
-          className += "ring-4 ring-red-500 bg-red-300 ";
-          break;
-        case '#3B82F6': // Azul
-          className += "ring-4 ring-blue-500 bg-blue-300 ";
-          break;
-        case '#10B981': // Verde
-          className += "ring-4 ring-green-500 bg-green-300 ";
-          break;
-        case '#F59E0B': // Amarillo
-          className += "ring-4 ring-yellow-500 bg-yellow-300 ";
-          break;
-        case '#8B5CF6': // Morado
-          className += "ring-4 ring-purple-500 bg-purple-300 ";
-          break;
-        case '#EC4899': // Rosa
-          className += "ring-4 ring-pink-500 bg-pink-300 ";
-          break;
-        default:
-          className += "ring-4 ring-blue-500 bg-blue-300 ";
-      }
+      const playerColor = currentPlayer?.color || '#3B82F6';
+      if (playerColor === '#EF4444') className += "ring-4 ring-red-500 bg-red-300 ";        // Rojo
+      else if (playerColor === '#3B82F6') className += "ring-4 ring-blue-500 bg-blue-300 ";    // Azul
+      else if (playerColor === '#10B981') className += "ring-4 ring-green-500 bg-green-300 ";  // Verde
+      else if (playerColor === '#F59E0B') className += "ring-4 ring-yellow-500 bg-yellow-300 ";// Amarillo
+      else if (playerColor === '#8B5CF6') className += "ring-4 ring-purple-500 bg-purple-300 ";// Morado
+      else if (playerColor === '#EC4899') className += "ring-4 ring-pink-500 bg-pink-300 ";    // Rosa
+      else className += "ring-4 ring-blue-500 bg-blue-300 ";
     }
     
     return className;
