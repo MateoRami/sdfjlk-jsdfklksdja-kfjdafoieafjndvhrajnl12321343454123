@@ -132,31 +132,31 @@ export default function SudokuBoard({
       className += "bg-blue-200 ";
     }
     
-    // Highlight related cells for current player only
+    // Highlight related cells for current player only - more opaque
     if (isInMyGroup && activeSelectedCell && !(isLocallySelected || isServerSelected)) {
       const colorMap: Record<string, string> = {
-        '#EF4444': 'bg-red-50',
-        '#3B82F6': 'bg-blue-50',
-        '#10B981': 'bg-green-50',
-        '#F59E0B': 'bg-yellow-50',
-        '#8B5CF6': 'bg-purple-50',
-        '#EC4899': 'bg-pink-50',
+        '#EF4444': 'bg-red-200',
+        '#3B82F6': 'bg-blue-200',
+        '#10B981': 'bg-green-200',
+        '#F59E0B': 'bg-yellow-200',
+        '#8B5CF6': 'bg-purple-200',
+        '#EC4899': 'bg-pink-200',
       };
-      className += colorMap[currentPlayer?.color || ''] || 'bg-gray-50';
+      className += colorMap[currentPlayer?.color || ''] || 'bg-gray-200';
     }
     
-    // Currently selected cell - use player's color
+    // Currently selected cell - use player's color with more opacity
     if (isLocallySelected || isServerSelected) {
       const ringColorMap: Record<string, string> = {
-        '#EF4444': 'ring-red-500 bg-red-100',
-        '#3B82F6': 'ring-blue-500 bg-blue-100', 
-        '#10B981': 'ring-green-500 bg-green-100',
-        '#F59E0B': 'ring-yellow-500 bg-yellow-100',
-        '#8B5CF6': 'ring-purple-500 bg-purple-100',
-        '#EC4899': 'ring-pink-500 bg-pink-100',
+        '#EF4444': 'ring-red-500 bg-red-300',
+        '#3B82F6': 'ring-blue-500 bg-blue-300', 
+        '#10B981': 'ring-green-500 bg-green-300',
+        '#F59E0B': 'ring-yellow-500 bg-yellow-300',
+        '#8B5CF6': 'ring-purple-500 bg-purple-300',
+        '#EC4899': 'ring-pink-500 bg-pink-300',
       };
       const playerColor = currentPlayer?.color || '#3B82F6';
-      className += `ring-4 ${ringColorMap[playerColor] || 'ring-blue-500 bg-blue-100'} `;
+      className += `ring-4 ${ringColorMap[playerColor] || 'ring-blue-500 bg-blue-300'} `;
     }
     
     // Other players' selections
