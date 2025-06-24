@@ -292,13 +292,13 @@ export default function SudokuBoard({
 
       {/* Sudoku Board */}
       <div className="flex justify-center">
-        <div className="inline-block bg-gray-900 p-2 rounded-lg">
-          <div className="grid grid-cols-9 gap-px">
+        <div className="inline-block bg-gray-900 p-1 rounded-lg">
+          <div className="sudoku-grid">
             {board.map((row, rowIndex) =>
               row.map((cell, colIndex) => (
                 <div
                   key={`${rowIndex}-${colIndex}`}
-                  className={getCellStyle(rowIndex, colIndex)}
+                  className={`${getCellStyle(rowIndex, colIndex)} sudoku-cell-${rowIndex}-${colIndex}`}
                   onClick={() => handleCellClick(rowIndex, colIndex)}
                 >
                   {lockedCells[rowIndex]?.[colIndex] || board[rowIndex][colIndex] !== 0 ? (
