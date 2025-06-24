@@ -97,97 +97,120 @@ export default function SudokuBoard({
     const isLocked = lockedCells[row]?.[col];
     const cellValue = board[row][col];
     
-    // Check if this cell should be highlighted due to same number
-    const shouldHighlightNumber = currentPlayer?.highlightedNumber && 
-                                  cellValue !== 0 && 
-                                  cellValue === currentPlayer.highlightedNumber;
-    
-    // Check if cell is in same row, column, or box as selected cell (prioritize local state)
-    const activeSelectedCell = selectedCell || (currentPlayer?.selectedCell as any);
-    const isInMyGroup = activeSelectedCell && (
-      activeSelectedCell.row === row || 
-      activeSelectedCell.col === col || 
-      (Math.floor(activeSelectedCell.row / 3) === Math.floor(row / 3) && 
-       Math.floor(activeSelectedCell.col / 3) === Math.floor(col / 3))
-    );
-    
-    // Currently selected cell (prioritize local state for instant feedback)
-    const isLocallySelected = selectedCell?.row === row && selectedCell?.col === col;
-    const isServerSelected = !isLocallySelected && currentPlayer?.selectedCell && 
-                            (currentPlayer.selectedCell as any).row === row && 
-                            (currentPlayer.selectedCell as any).col === col;
-
-    // Check for other players' selections
-    const otherPlayerColor = getPlayerColorForCell(row, col);
-    const isOtherPlayerSelected = otherPlayerColor && !(isLocallySelected || isServerSelected);
-    
+    // Base class
     let className = "relative w-10 h-10 text-center font-bold border-0 focus:ring-2 focus:ring-blue-500 text-gray-900 transition-all duration-150 cursor-pointer ";
     
     // Base background
     if (isLocked) {
       className += "bg-gray-100 ";
     } else {
-      className += "bg-white focus:bg-blue-50 ";
+      className += "bg-white ";
     }
     
-    // Priority 1: Highlight same numbers (lowest priority)
-    if (shouldHighlightNumber && !isInMyGroup && !isLocallySelected && !isServerSelected && !isOtherPlayerSelected) {
+    // Check if this is my selected cell (local state has priority for instant feedback)
+    const isMySelectedCell = selectedCell?.row === row && selectedCell?.col === col;
+    const isMyServerSelectedCell = !isMySelectedCell && currentPlayer?.selectedCell && 
+                                   (currentPlayer.selectedCell as any).row === row && 
+                                   (currentPlayer.selectedCell as any).col === col;
+    
+    // Check if another player has this cell selected
+    const otherPlayerColor = getPlayerColorForCell(row, col);
+    const isOtherPlayerCell = otherPlayerColor && !isMySelectedCell && !isMyServerSelectedCell;
+    
+    // Get my active selected cell for range highlighting
+    const myActiveSelectedCell = selectedCell || (currentPlayer?.selectedCell as any);
+    const isInMyRange = myActiveSelectedCell && (
+      myActiveSelectedCell.row === row || 
+      myActiveSelectedCell.col === col || 
+      (Math.floor(myActiveSelectedCell.row / 3) === Math.floor(row / 3) && 
+       Math.floor(myActiveSelectedCell.col / 3) === Math.floor(col / 3))
+    );
+    
+    // Apply styling in order of priority
+    
+    // 1. Highlight same numbers (lowest priority, only if no other highlighting)
+    const shouldHighlightNumber = currentPlayer?.highlightedNumber && 
+                                  cellValue !== 0 && 
+                                  cellValue === currentPlayer.highlightedNumber;
+    if (shouldHighlightNumber && !isInMyRange && !isMySelectedCell && !isMyServerSelectedCell && !isOtherPlayerCell) {
       className += "bg-blue-200 ";
     }
     
-    // Priority 2: Highlight related cells for current player only
-    if (isInMyGroup && activeSelectedCell && !(isLocallySelected || isServerSelected) && !isOtherPlayerSelected) {
-      const colorMap: Record<string, string> = {
-        '#EF4444': 'bg-red-200 ',      // Rojo
-        '#3B82F6': 'bg-blue-200 ',     // Azul
-        '#10B981': 'bg-emerald-200 ',  // Verde
-        '#F59E0B': 'bg-amber-200 ',    // Amarillo/Amber
-        '#8B5CF6': 'bg-violet-200 ',   // Morado/Violeta
-        '#EC4899': 'bg-pink-200 ',     // Rosa
-      };
-      const playerColor = currentPlayer?.color || '';
-      const bgClass = colorMap[playerColor];
-      if (bgClass) {
-        className += bgClass;
-      } else {
-        className += 'bg-gray-200 ';
+    // 2. Highlight my range (row/column/box) - only if not my selected cell and no other player
+    if (isInMyRange && !isMySelectedCell && !isMyServerSelectedCell && !isOtherPlayerCell) {
+      switch(currentPlayer?.color) {
+        case '#EF4444': // Rojo
+          className += "bg-red-200 ";
+          break;
+        case '#3B82F6': // Azul
+          className += "bg-blue-200 ";
+          break;
+        case '#10B981': // Verde
+          className += "bg-green-200 ";
+          break;
+        case '#F59E0B': // Amarillo
+          className += "bg-yellow-200 ";
+          break;
+        case '#8B5CF6': // Morado
+          className += "bg-purple-200 ";
+          break;
+        case '#EC4899': // Rosa
+          className += "bg-pink-200 ";
+          break;
+        default:
+          className += "bg-gray-200 ";
       }
     }
     
-    // Priority 3: Other players' selections
-    if (isOtherPlayerSelected) {
-      const colorMap: Record<string, string> = {
-        '#EF4444': 'ring-red-500 ',      // Rojo
-        '#3B82F6': 'ring-blue-500 ',     // Azul
-        '#10B981': 'ring-emerald-500 ',  // Verde
-        '#F59E0B': 'ring-amber-500 ',    // Amarillo/Amber
-        '#8B5CF6': 'ring-violet-500 ',   // Morado/Violeta
-        '#EC4899': 'ring-pink-500 ',     // Rosa
-      };
-      const ringClass = colorMap[otherPlayerColor || ''];
-      if (ringClass) {
-        className += `ring-2 ${ringClass}`;
-      } else {
-        className += 'ring-2 ring-gray-500 ';
+    // 3. Other players' selections
+    if (isOtherPlayerCell) {
+      switch(otherPlayerColor) {
+        case '#EF4444':
+          className += "ring-2 ring-red-500 ";
+          break;
+        case '#3B82F6':
+          className += "ring-2 ring-blue-500 ";
+          break;
+        case '#10B981':
+          className += "ring-2 ring-green-500 ";
+          break;
+        case '#F59E0B':
+          className += "ring-2 ring-yellow-500 ";
+          break;
+        case '#8B5CF6':
+          className += "ring-2 ring-purple-500 ";
+          break;
+        case '#EC4899':
+          className += "ring-2 ring-pink-500 ";
+          break;
+        default:
+          className += "ring-2 ring-gray-500 ";
       }
     }
     
-    // Priority 4: Currently selected cell - highest priority
-    if (isLocallySelected || isServerSelected) {
-      const ringColorMap: Record<string, string> = {
-        '#EF4444': 'ring-red-500 bg-red-300 ',      // Rojo
-        '#3B82F6': 'ring-blue-500 bg-blue-300 ',     // Azul
-        '#10B981': 'ring-emerald-500 bg-emerald-300 ', // Verde
-        '#F59E0B': 'ring-amber-500 bg-amber-300 ',   // Amarillo/Amber
-        '#8B5CF6': 'ring-violet-500 bg-violet-300 ', // Morado/Violeta
-        '#EC4899': 'ring-pink-500 bg-pink-300 ',     // Rosa
-      };
-      const playerColor = currentPlayer?.color || '#3B82F6';
-      const ringClass = ringColorMap[playerColor];
-      if (ringClass) {
-        className += `ring-4 ${ringClass}`;
-      } else {
-        className += 'ring-4 ring-blue-500 bg-blue-300 ';
+    // 4. My selected cell (highest priority)
+    if (isMySelectedCell || isMyServerSelectedCell) {
+      switch(currentPlayer?.color || '#3B82F6') {
+        case '#EF4444': // Rojo
+          className += "ring-4 ring-red-500 bg-red-300 ";
+          break;
+        case '#3B82F6': // Azul
+          className += "ring-4 ring-blue-500 bg-blue-300 ";
+          break;
+        case '#10B981': // Verde
+          className += "ring-4 ring-green-500 bg-green-300 ";
+          break;
+        case '#F59E0B': // Amarillo
+          className += "ring-4 ring-yellow-500 bg-yellow-300 ";
+          break;
+        case '#8B5CF6': // Morado
+          className += "ring-4 ring-purple-500 bg-purple-300 ";
+          break;
+        case '#EC4899': // Rosa
+          className += "ring-4 ring-pink-500 bg-pink-300 ";
+          break;
+        default:
+          className += "ring-4 ring-blue-500 bg-blue-300 ";
       }
     }
     
