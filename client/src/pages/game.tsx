@@ -19,11 +19,11 @@ export default function Game() {
   const [gameTime, setGameTime] = useState(0);
   const { toast } = useToast();
 
-  // Polling for game state updates
+  // Polling for game state updates - faster polling for better responsiveness
   const { data: gameState, isLoading } = useQuery<GameState>({
     queryKey: [`/api/rooms/${currentRoom?.id}/state`],
     enabled: !!currentRoom,
-    refetchInterval: 2000, // Poll every 2 seconds
+    refetchInterval: 1000, // Poll every 1 second for better responsiveness
   });
 
   // Update current player state when game state changes
@@ -121,19 +121,42 @@ export default function Game() {
     },
   });
 
-  // Update player selection mutation
+  // Update player selection mutation with optimistic updates
   const updateSelectionMutation = useMutation({
     mutationFn: async (data: { row: number; col: number; highlightedNumber?: number | null } | null) => {
       const response = await apiRequest("PUT", `/api/players/${currentPlayer!.id}/selection`, data || {});
       return response.json();
     },
+    onMutate: async (data) => {
+      // Optimistic update - update local state immediately
+      if (currentPlayer && data) {
+        setCurrentPlayer({
+          ...currentPlayer,
+          selectedCell: { row: data.row, col: data.col },
+          highlightedNumber: data.highlightedNumber || null,
+        });
+      }
+    },
+    onSuccess: () => {
+      // Invalidate queries to sync with server
+      queryClient.invalidateQueries({ queryKey: [`/api/rooms/${currentRoom?.id}/state`] });
+    },
   });
 
-  // Toggle pencil mode mutation
+  // Toggle pencil mode mutation with optimistic updates
   const togglePencilMutation = useMutation({
     mutationFn: async (pencilMode: boolean) => {
       const response = await apiRequest("PUT", `/api/players/${currentPlayer!.id}/pencil`, { pencilMode });
       return response.json();
+    },
+    onMutate: async (pencilMode) => {
+      // Optimistic update - update local state immediately
+      if (currentPlayer) {
+        setCurrentPlayer({
+          ...currentPlayer,
+          pencilMode: pencilMode,
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/rooms/${currentRoom?.id}/state`] });
@@ -181,6 +204,7 @@ export default function Game() {
     const cellValue = board && board[row] ? board[row][col] : 0;
     const highlightedNumber = cellValue !== 0 ? cellValue : null;
     
+    // Update selection immediately for instant feedback
     updateSelectionMutation.mutate({ row, col, highlightedNumber });
   };
 

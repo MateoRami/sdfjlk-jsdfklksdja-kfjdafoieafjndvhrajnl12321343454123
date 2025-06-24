@@ -46,10 +46,11 @@ export default function SudokuBoard({
     const cellValue = board[row][col];
     const highlightedNumber = cellValue !== 0 ? cellValue : null;
     
+    // Call selection callback immediately for instant UI feedback
     onCellSelect(row, col);
     
     // If in pencil mode, load existing notes
-    if (currentPlayer.pencilMode && notes[row] && notes[row][col]) {
+    if (currentPlayer?.pencilMode && notes[row] && notes[row][col]) {
       setPendingNotes([...notes[row][col]]);
     } else {
       setPendingNotes([]);
@@ -103,16 +104,16 @@ export default function SudokuBoard({
                                   cellValue !== 0 && 
                                   cellValue === currentPlayer.highlightedNumber;
     
-    // Check if cell is in same row, column, or box as current player's selected cell
-    const mySelectedCell = currentPlayer.selectedCell as any;
-    const isInMyGroup = mySelectedCell && (
-      mySelectedCell.row === row || 
-      mySelectedCell.col === col || 
-      (Math.floor(mySelectedCell.row / 3) === Math.floor(row / 3) && 
-       Math.floor(mySelectedCell.col / 3) === Math.floor(col / 3))
+    // Check if cell is in same row, column, or box as selected cell (prioritize local state)
+    const activeSelectedCell = selectedCell || (currentPlayer?.selectedCell as any);
+    const isInMyGroup = activeSelectedCell && (
+      activeSelectedCell.row === row || 
+      activeSelectedCell.col === col || 
+      (Math.floor(activeSelectedCell.row / 3) === Math.floor(row / 3) && 
+       Math.floor(activeSelectedCell.col / 3) === Math.floor(col / 3))
     );
     
-    let className = "relative w-10 h-10 text-center font-bold border-0 focus:ring-2 focus:ring-blue-500 text-gray-900 transition-all cursor-pointer ";
+    let className = "relative w-10 h-10 text-center font-bold border-0 focus:ring-2 focus:ring-blue-500 text-gray-900 transition-all duration-150 cursor-pointer ";
     
     if (isLocked) {
       className += "bg-gray-100 ";
@@ -126,7 +127,7 @@ export default function SudokuBoard({
     }
     
     // Highlight related cells for current player only
-    if (isInMyGroup && mySelectedCell && !isSelected) {
+    if (isInMyGroup && activeSelectedCell && !(isLocallySelected || isServerSelected)) {
       const colorMap: Record<string, string> = {
         '#EF4444': 'bg-red-100',
         '#3B82F6': 'bg-blue-100',
@@ -135,12 +136,17 @@ export default function SudokuBoard({
         '#8B5CF6': 'bg-purple-100',
         '#EC4899': 'bg-pink-100',
       };
-      className += colorMap[currentPlayer.color] || 'bg-gray-100';
+      className += colorMap[currentPlayer?.color || ''] || 'bg-gray-100';
       className += " bg-opacity-40 ";
     }
     
-    // Currently selected cell
-    if (isSelected) {
+    // Currently selected cell (prioritize local state for instant feedback)
+    const isLocallySelected = selectedCell?.row === row && selectedCell?.col === col;
+    const isServerSelected = !isLocallySelected && currentPlayer?.selectedCell && 
+                            (currentPlayer.selectedCell as any).row === row && 
+                            (currentPlayer.selectedCell as any).col === col;
+    
+    if (isLocallySelected || isServerSelected) {
       className += "ring-4 ring-blue-500 bg-blue-50 ";
     }
     

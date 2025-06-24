@@ -108,6 +108,8 @@ Changelog:
   * Enhanced pencil mode functionality for better note management
   * Notes remain persistent when incorrect numbers are placed
   * Smart note removal from row/column/box when correct numbers are placed
+  * Improved UI responsiveness with optimistic updates and faster polling
+  * Added smooth transitions and instant visual feedback for better UX
   * Improved visual feedback with blue-colored notes
   * Better user experience with clearer instructions
 ```
