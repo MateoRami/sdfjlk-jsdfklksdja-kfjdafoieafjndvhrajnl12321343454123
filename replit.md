@@ -115,6 +115,9 @@ Changelog:
   * Enhanced cell highlighting: ALL cells in same row/column/block now highlight with player's color
   * More opaque highlighting (bg-200 instead of bg-50) for better visibility
   * Selected cell borders now match player's color for better identification
+  * Improved Sudoku grid with thick borders between 3x3 blocks and thin borders between cells
+  * Fixed border alignment issues ensuring proper block separation
+  * Changed to uniform 4-sided borders for selected cells using border-4 instead of ring-4
 ```
 
 ## User Preferences

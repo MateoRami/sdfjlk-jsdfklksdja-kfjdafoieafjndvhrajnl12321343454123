@@ -188,30 +188,30 @@ export default function SudokuBoard({
     
     // Apply selection styles for current player
     if (isCurrentPlayerCell) {
-      // Current player's selected cell gets border in their color
+      // Current player's selected cell gets even 4-sided border in their color
       const borderColorMap: Record<string, string> = {
-        '#EF4444': 'ring-4 ring-red-500 bg-red-100',
-        '#3B82F6': 'ring-4 ring-blue-500 bg-blue-100',
-        '#10B981': 'ring-4 ring-green-500 bg-green-100', 
-        '#F59E0B': 'ring-4 ring-yellow-500 bg-yellow-100',
-        '#8B5CF6': 'ring-4 ring-purple-500 bg-purple-100',
-        '#EC4899': 'ring-4 ring-pink-500 bg-pink-100',
+        '#EF4444': 'border-4 border-red-500 bg-red-100',
+        '#3B82F6': 'border-4 border-blue-500 bg-blue-100',
+        '#10B981': 'border-4 border-green-500 bg-green-100', 
+        '#F59E0B': 'border-4 border-yellow-500 bg-yellow-100',
+        '#8B5CF6': 'border-4 border-purple-500 bg-purple-100',
+        '#EC4899': 'border-4 border-pink-500 bg-pink-100',
       };
-      const borderStyle = borderColorMap[currentPlayer?.color || ''] || 'ring-4 ring-blue-500 bg-blue-100';
+      const borderStyle = borderColorMap[currentPlayer?.color || ''] || 'border-4 border-blue-500 bg-blue-100';
       className += borderStyle + " ";
     }
     
     // Apply selection styles for other players
     if (hasOtherPlayerSelection) {
       const borderColorMap: Record<string, string> = {
-        '#EF4444': 'ring-2 ring-red-500',
-        '#3B82F6': 'ring-2 ring-blue-500',
-        '#10B981': 'ring-2 ring-green-500',
-        '#F59E0B': 'ring-2 ring-yellow-500', 
-        '#8B5CF6': 'ring-2 ring-purple-500',
-        '#EC4899': 'ring-2 ring-pink-500',
+        '#EF4444': 'border-2 border-red-500',
+        '#3B82F6': 'border-2 border-blue-500',
+        '#10B981': 'border-2 border-green-500',
+        '#F59E0B': 'border-2 border-yellow-500', 
+        '#8B5CF6': 'border-2 border-purple-500',
+        '#EC4899': 'border-2 border-pink-500',
       };
-      const borderStyle = borderColorMap[otherPlayerColor] || 'ring-2 ring-gray-500';
+      const borderStyle = borderColorMap[otherPlayerColor] || 'border-2 border-gray-500';
       className += borderStyle + " ";
     }
     
