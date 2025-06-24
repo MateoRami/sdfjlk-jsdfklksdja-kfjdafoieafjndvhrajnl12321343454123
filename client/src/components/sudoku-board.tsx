@@ -157,17 +157,17 @@ export default function SudokuBoard({
                          Math.floor(activeSelectedCell.col / 3) === Math.floor(col / 3);
       
       if ((isInSameRow || isInSameCol || isInSameBox) && !isCurrentPlayerCell && !hasOtherPlayerSelection) {
-        // Apply background highlight with current player's color
+        // Apply background highlight with current player's color (more opaque)
         const colorMap: Record<string, string> = {
-          '#EF4444': 'bg-red-50 border-red-200',
-          '#3B82F6': 'bg-blue-50 border-blue-200', 
-          '#10B981': 'bg-green-50 border-green-200',
-          '#F59E0B': 'bg-yellow-50 border-yellow-200',
-          '#8B5CF6': 'bg-purple-50 border-purple-200',
-          '#EC4899': 'bg-pink-50 border-pink-200',
+          '#EF4444': 'bg-red-200',
+          '#3B82F6': 'bg-blue-200', 
+          '#10B981': 'bg-green-200',
+          '#F59E0B': 'bg-yellow-200',
+          '#8B5CF6': 'bg-purple-200',
+          '#EC4899': 'bg-pink-200',
         };
-        const bgColor = colorMap[currentPlayer?.color || ''] || 'bg-gray-50 border-gray-200';
-        className = className.replace('bg-white', bgColor);
+        const bgColor = colorMap[currentPlayer?.color || ''] || 'bg-gray-200';
+        className = className.replace('bg-white', bgColor).replace('bg-gray-100', bgColor);
       }
     }
     

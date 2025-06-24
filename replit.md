@@ -112,6 +112,9 @@ Changelog:
   * Added smooth transitions and instant visual feedback for better UX
   * Improved visual feedback with blue-colored notes
   * Better user experience with clearer instructions
+  * Enhanced cell highlighting: ALL cells in same row/column/block now highlight with player's color
+  * More opaque highlighting (bg-200 instead of bg-50) for better visibility
+  * Selected cell borders now match player's color for better identification
 ```
 
 ## User Preferences
