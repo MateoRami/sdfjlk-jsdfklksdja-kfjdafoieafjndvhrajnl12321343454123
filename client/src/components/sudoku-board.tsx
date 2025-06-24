@@ -119,12 +119,14 @@ export default function SudokuBoard({
     
     // Get my active selected cell for range highlighting
     const myActiveSelectedCell = selectedCell || (currentPlayer?.selectedCell as any);
-    const isInMyRange = myActiveSelectedCell && (
-      myActiveSelectedCell.row === row || 
-      myActiveSelectedCell.col === col || 
-      (Math.floor(myActiveSelectedCell.row / 3) === Math.floor(row / 3) && 
-       Math.floor(myActiveSelectedCell.col / 3) === Math.floor(col / 3))
-    );
+    const isInMyRange = myActiveSelectedCell && 
+      myActiveSelectedCell.row !== undefined && 
+      myActiveSelectedCell.col !== undefined && (
+        myActiveSelectedCell.row === row || 
+        myActiveSelectedCell.col === col || 
+        (Math.floor(myActiveSelectedCell.row / 3) === Math.floor(row / 3) && 
+         Math.floor(myActiveSelectedCell.col / 3) === Math.floor(col / 3))
+      );
     
     // Apply styling in order of priority
     
@@ -136,29 +138,23 @@ export default function SudokuBoard({
       className += "bg-blue-200 ";
     }
     
-    // 2. Highlight my range (row/column/box) - only if not my selected cell and no other player
+    // 2. Highlight my range (row/column/box) - if in range but not my selected cell or other player's cell
     if (isInMyRange && !isMySelectedCell && !isMyServerSelectedCell && !isOtherPlayerCell) {
-      switch(currentPlayer?.color) {
-        case '#EF4444': // Rojo
-          className += "bg-red-200 ";
-          break;
-        case '#3B82F6': // Azul
-          className += "bg-blue-200 ";
-          break;
-        case '#10B981': // Verde
-          className += "bg-green-200 ";
-          break;
-        case '#F59E0B': // Amarillo
-          className += "bg-yellow-200 ";
-          break;
-        case '#8B5CF6': // Morado
-          className += "bg-purple-200 ";
-          break;
-        case '#EC4899': // Rosa
-          className += "bg-pink-200 ";
-          break;
-        default:
-          className += "bg-gray-200 ";
+      const playerColor = currentPlayer?.color;
+      if (playerColor === '#EF4444') { // Rojo
+        className += "bg-red-200 ";
+      } else if (playerColor === '#3B82F6') { // Azul
+        className += "bg-blue-200 ";
+      } else if (playerColor === '#10B981') { // Verde
+        className += "bg-green-200 ";
+      } else if (playerColor === '#F59E0B') { // Amarillo
+        className += "bg-yellow-200 ";
+      } else if (playerColor === '#8B5CF6') { // Morado
+        className += "bg-purple-200 ";
+      } else if (playerColor === '#EC4899') { // Rosa
+        className += "bg-pink-200 ";
+      } else {
+        className += "bg-gray-200 ";
       }
     }
     
