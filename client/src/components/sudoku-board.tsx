@@ -57,26 +57,28 @@ export default function SudokuBoard({
   };
 
   const handleCellChange = (row: number, col: number, value: string) => {
-    if (isGameOver || lockedCells[row]?.[col] || board[row][col] !== 0) return;
+    if (isGameOver || lockedCells[row]?.[col]) return;
     
     const numValue = value === "" ? null : parseInt(value);
     if (numValue !== null && (numValue < 1 || numValue > 9)) return;
     
     if (currentPlayer.pencilMode && numValue !== null) {
-      // Handle notes
-      const currentNotes = notes[row] && notes[row][col] ? [...notes[row][col]] : [];
-      if (currentNotes.includes(numValue)) {
-        // Remove note
-        const index = currentNotes.indexOf(numValue);
-        currentNotes.splice(index, 1);
-      } else {
-        // Add note
-        currentNotes.push(numValue);
-        currentNotes.sort();
+      // Handle notes - only if cell is empty
+      if (board[row][col] === 0) {
+        const currentNotes = notes[row] && notes[row][col] ? [...notes[row][col]] : [];
+        if (currentNotes.includes(numValue)) {
+          // Remove note
+          const index = currentNotes.indexOf(numValue);
+          currentNotes.splice(index, 1);
+        } else {
+          // Add note
+          currentNotes.push(numValue);
+          currentNotes.sort();
+        }
+        onNoteChange(row, col, currentNotes);
       }
-      onNoteChange(row, col, currentNotes);
     } else {
-      // Handle regular number input
+      // Handle regular number input - this will clear notes and place number
       onCellChange(row, col, numValue);
     }
   };
@@ -227,7 +229,7 @@ export default function SudokuBoard({
       {/* Status indicator */}
       {currentPlayer.pencilMode && (
         <div className="text-center text-sm text-purple-600 font-medium mb-2">
-          Modo lápiz activo - Haz clic en números para agregar/quitar notas
+          Modo lápiz activo - Haz clic en números para crear notas posibles
         </div>
       )}
 
@@ -256,9 +258,9 @@ export default function SudokuBoard({
                       {/* Notes display */}
                       {notes[rowIndex] && notes[rowIndex][colIndex] && notes[rowIndex][colIndex].length > 0 && board[rowIndex][colIndex] === 0 && (
                         <div className="absolute inset-0 pointer-events-none p-0.5">
-                          <div className="grid grid-cols-3 gap-0 w-full h-full">
+                          <div className="grid grid-cols-3 gap-0 w-full h-full text-xs">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                              <div key={num} className="flex items-center justify-center text-xs font-medium text-gray-600">
+                              <div key={num} className="flex items-center justify-center font-medium text-blue-600">
                                 {notes[rowIndex][colIndex].includes(num) ? num : ''}
                               </div>
                             ))}

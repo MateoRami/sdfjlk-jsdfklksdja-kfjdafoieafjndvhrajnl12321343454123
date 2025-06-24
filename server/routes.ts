@@ -165,11 +165,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Clear notes from this cell
         roomNotes[row][col] = [];
         
-        // If correct number, remove it from related notes
+        // If correct number, remove it from related notes in row, column, and box
         if (value !== null && isCorrect) {
           removeNumberFromRelatedNotes(roomNotes, row, col, value);
         }
         
+        // Only increment errors if placing incorrect number (not for clearing)
         if (value !== null && !isCorrect) {
           newErrors++;
         }
@@ -364,12 +365,16 @@ function createLockedCells(board: number[][]): boolean[][] {
 function removeNumberFromRelatedNotes(notes: number[][][], row: number, col: number, number: number) {
   // Remove from same row
   for (let c = 0; c < 9; c++) {
-    notes[row][c] = notes[row][c].filter(n => n !== number);
+    if (notes[row] && notes[row][c]) {
+      notes[row][c] = notes[row][c].filter(n => n !== number);
+    }
   }
   
   // Remove from same column
   for (let r = 0; r < 9; r++) {
-    notes[r][col] = notes[r][col].filter(n => n !== number);
+    if (notes[r] && notes[r][col]) {
+      notes[r][col] = notes[r][col].filter(n => n !== number);
+    }
   }
   
   // Remove from same 3x3 box
@@ -377,7 +382,9 @@ function removeNumberFromRelatedNotes(notes: number[][][], row: number, col: num
   const boxCol = Math.floor(col / 3) * 3;
   for (let r = boxRow; r < boxRow + 3; r++) {
     for (let c = boxCol; c < boxCol + 3; c++) {
-      notes[r][c] = notes[r][c].filter(n => n !== number);
+      if (notes[r] && notes[r][c]) {
+        notes[r][c] = notes[r][c].filter(n => n !== number);
+      }
     }
   }
 }

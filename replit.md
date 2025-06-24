@@ -103,6 +103,13 @@ Changelog:
   * Number highlighting and collaborative cell highlighting
   * Enhanced visual feedback for row/column/box relationships
   * Mobile-friendly number input pad
+- January 3, 2025. Project migration and pencil mode improvements:
+  * Successfully migrated from Replit Agent to standard Replit environment
+  * Enhanced pencil mode functionality for better note management
+  * Notes remain persistent when incorrect numbers are placed
+  * Smart note removal from row/column/box when correct numbers are placed
+  * Improved visual feedback with blue-colored notes
+  * Better user experience with clearer instructions
 ```
 
 ## User Preferences
