@@ -86,6 +86,7 @@ export default function SudokuBoard({
 
   const getPlayerColorForCell = (row: number, col: number) => {
     const player = players.find(p => 
+      p.id !== currentPlayer.id && // Exclude current player
       p.selectedCell && 
       (p.selectedCell as any).row === row && 
       (p.selectedCell as any).col === col
