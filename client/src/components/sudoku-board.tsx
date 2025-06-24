@@ -95,23 +95,12 @@ export default function SudokuBoard({
 
   const getCellStyle = (row: number, col: number) => {
     const isLocked = lockedCells[row]?.[col];
-    const isSelected = selectedCell?.row === row && selectedCell?.col === col;
-    const playerColor = getPlayerColorForCell(row, col);
     const cellValue = board[row][col];
     
     // Check if this cell should be highlighted due to same number
     const shouldHighlightNumber = currentPlayer.highlightedNumber && 
                                   cellValue !== 0 && 
                                   cellValue === currentPlayer.highlightedNumber;
-    
-    // Check if cell is in same row, column, or box as selected cell (prioritize local state)
-    const activeSelectedCell = selectedCell || (currentPlayer?.selectedCell as any);
-    const isInMyGroup = activeSelectedCell && (
-      activeSelectedCell.row === row || 
-      activeSelectedCell.col === col || 
-      (Math.floor(activeSelectedCell.row / 3) === Math.floor(row / 3) && 
-       Math.floor(activeSelectedCell.col / 3) === Math.floor(col / 3))
-    );
     
     let className = "relative w-10 h-10 text-center font-bold border-0 focus:ring-2 focus:ring-blue-500 text-gray-900 transition-all duration-150 cursor-pointer ";
     
@@ -120,48 +109,95 @@ export default function SudokuBoard({
     } else {
       className += "bg-white focus:bg-blue-50 ";
     }
-    
-    // Currently selected cell (prioritize local state for instant feedback)
-    const isLocallySelected = selectedCell?.row === row && selectedCell?.col === col;
-    const isServerSelected = !isLocallySelected && currentPlayer?.selectedCell && 
-                            (currentPlayer.selectedCell as any).row === row && 
-                            (currentPlayer.selectedCell as any).col === col;
 
     // Highlight same numbers
     if (shouldHighlightNumber) {
       className += "bg-blue-200 ";
     }
     
-    // Highlight related cells for current player only
-    if (isInMyGroup && activeSelectedCell && !(isLocallySelected || isServerSelected)) {
-      const colorMap: Record<string, string> = {
-        '#EF4444': 'bg-red-100',
-        '#3B82F6': 'bg-blue-100',
-        '#10B981': 'bg-green-100',
-        '#F59E0B': 'bg-yellow-100',
-        '#8B5CF6': 'bg-purple-100',
-        '#EC4899': 'bg-pink-100',
-      };
-      className += colorMap[currentPlayer?.color || ''] || 'bg-gray-100';
-      className += " bg-opacity-40 ";
-    }
+    // Check all players' selections and apply highlighting
+    let isCurrentPlayerCell = false;
+    let hasOtherPlayerSelection = false;
+    let otherPlayerColor = '';
+    
+    // Check current player selection (prioritize local state for instant feedback)
+    const isLocallySelected = selectedCell?.row === row && selectedCell?.col === col;
+    const isServerSelected = !isLocallySelected && currentPlayer?.selectedCell && 
+                            (currentPlayer.selectedCell as any).row === row && 
+                            (currentPlayer.selectedCell as any).col === col;
     
     if (isLocallySelected || isServerSelected) {
-      className += "ring-4 ring-blue-500 bg-blue-50 ";
+      isCurrentPlayerCell = true;
     }
     
-    // Other players' selections
-    if (playerColor && !isSelected) {
-      className += `ring-2 `;
-      const colorMap: Record<string, string> = {
-        '#EF4444': 'ring-red-500',
-        '#3B82F6': 'ring-blue-500',
-        '#10B981': 'ring-green-500',
-        '#F59E0B': 'ring-yellow-500',
-        '#8B5CF6': 'ring-purple-500',
-        '#EC4899': 'ring-pink-500',
+    // Check other players' selections
+    for (const player of players) {
+      if (player.id === currentPlayer.id) continue; // Skip current player
+      
+      if (player.selectedCell) {
+        const playerRow = (player.selectedCell as any).row;
+        const playerCol = (player.selectedCell as any).col;
+        
+        if (playerRow === row && playerCol === col) {
+          hasOtherPlayerSelection = true;
+          otherPlayerColor = player.color;
+          break;
+        }
+      }
+    }
+    
+    // Apply highlighting for current player's row/column/box
+    if (selectedCell || currentPlayer?.selectedCell) {
+      const activeSelectedCell = selectedCell || (currentPlayer?.selectedCell as any);
+      
+      // Check if this cell is in the same row, column, or box as current player's selection
+      const isInSameRow = activeSelectedCell.row === row;
+      const isInSameCol = activeSelectedCell.col === col;
+      const isInSameBox = Math.floor(activeSelectedCell.row / 3) === Math.floor(row / 3) && 
+                         Math.floor(activeSelectedCell.col / 3) === Math.floor(col / 3);
+      
+      if ((isInSameRow || isInSameCol || isInSameBox) && !isCurrentPlayerCell && !hasOtherPlayerSelection) {
+        // Apply background highlight with current player's color
+        const colorMap: Record<string, string> = {
+          '#EF4444': 'bg-red-50 border-red-200',
+          '#3B82F6': 'bg-blue-50 border-blue-200', 
+          '#10B981': 'bg-green-50 border-green-200',
+          '#F59E0B': 'bg-yellow-50 border-yellow-200',
+          '#8B5CF6': 'bg-purple-50 border-purple-200',
+          '#EC4899': 'bg-pink-50 border-pink-200',
+        };
+        const bgColor = colorMap[currentPlayer?.color || ''] || 'bg-gray-50 border-gray-200';
+        className = className.replace('bg-white', bgColor);
+      }
+    }
+    
+    // Apply selection styles for current player
+    if (isCurrentPlayerCell) {
+      // Current player's selected cell gets border in their color
+      const borderColorMap: Record<string, string> = {
+        '#EF4444': 'ring-4 ring-red-500 bg-red-100',
+        '#3B82F6': 'ring-4 ring-blue-500 bg-blue-100',
+        '#10B981': 'ring-4 ring-green-500 bg-green-100', 
+        '#F59E0B': 'ring-4 ring-yellow-500 bg-yellow-100',
+        '#8B5CF6': 'ring-4 ring-purple-500 bg-purple-100',
+        '#EC4899': 'ring-4 ring-pink-500 bg-pink-100',
       };
-      className += colorMap[playerColor] || 'ring-gray-500';
+      const borderStyle = borderColorMap[currentPlayer?.color || ''] || 'ring-4 ring-blue-500 bg-blue-100';
+      className += borderStyle + " ";
+    }
+    
+    // Apply selection styles for other players
+    if (hasOtherPlayerSelection) {
+      const borderColorMap: Record<string, string> = {
+        '#EF4444': 'ring-2 ring-red-500',
+        '#3B82F6': 'ring-2 ring-blue-500',
+        '#10B981': 'ring-2 ring-green-500',
+        '#F59E0B': 'ring-2 ring-yellow-500', 
+        '#8B5CF6': 'ring-2 ring-purple-500',
+        '#EC4899': 'ring-2 ring-pink-500',
+      };
+      const borderStyle = borderColorMap[otherPlayerColor] || 'ring-2 ring-gray-500';
+      className += borderStyle + " ";
     }
     
     return className;
