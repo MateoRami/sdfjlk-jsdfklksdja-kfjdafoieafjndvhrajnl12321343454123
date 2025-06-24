@@ -135,23 +135,32 @@ export default function SudokuBoard({
     // Highlight related cells for current player only
     if (isInMyGroup && activeSelectedCell && !(isLocallySelected || isServerSelected)) {
       const colorMap: Record<string, string> = {
-        '#EF4444': 'bg-red-100',
-        '#3B82F6': 'bg-blue-100',
-        '#10B981': 'bg-green-100',
-        '#F59E0B': 'bg-yellow-100',
-        '#8B5CF6': 'bg-purple-100',
-        '#EC4899': 'bg-pink-100',
+        '#EF4444': 'bg-red-50',
+        '#3B82F6': 'bg-blue-50',
+        '#10B981': 'bg-green-50',
+        '#F59E0B': 'bg-yellow-50',
+        '#8B5CF6': 'bg-purple-50',
+        '#EC4899': 'bg-pink-50',
       };
-      className += colorMap[currentPlayer?.color || ''] || 'bg-gray-100';
-      className += " bg-opacity-40 ";
+      className += colorMap[currentPlayer?.color || ''] || 'bg-gray-50';
     }
     
+    // Currently selected cell - use player's color
     if (isLocallySelected || isServerSelected) {
-      className += "ring-4 ring-blue-500 bg-blue-50 ";
+      const ringColorMap: Record<string, string> = {
+        '#EF4444': 'ring-red-500 bg-red-100',
+        '#3B82F6': 'ring-blue-500 bg-blue-100', 
+        '#10B981': 'ring-green-500 bg-green-100',
+        '#F59E0B': 'ring-yellow-500 bg-yellow-100',
+        '#8B5CF6': 'ring-purple-500 bg-purple-100',
+        '#EC4899': 'ring-pink-500 bg-pink-100',
+      };
+      const playerColor = currentPlayer?.color || '#3B82F6';
+      className += `ring-4 ${ringColorMap[playerColor] || 'ring-blue-500 bg-blue-100'} `;
     }
     
     // Other players' selections
-    if (playerColor && !isSelected) {
+    if (playerColor && !(isLocallySelected || isServerSelected)) {
       className += `ring-2 `;
       const colorMap: Record<string, string> = {
         '#EF4444': 'ring-red-500',
