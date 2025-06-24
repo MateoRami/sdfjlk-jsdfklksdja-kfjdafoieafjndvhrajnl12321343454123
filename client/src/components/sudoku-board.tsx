@@ -138,42 +138,57 @@ export default function SudokuBoard({
     // Priority 2: Highlight related cells for current player only
     if (isInMyGroup && activeSelectedCell && !(isLocallySelected || isServerSelected) && !isOtherPlayerSelected) {
       const colorMap: Record<string, string> = {
-        '#EF4444': 'bg-red-200',
-        '#3B82F6': 'bg-blue-200',
-        '#10B981': 'bg-green-200',
-        '#F59E0B': 'bg-yellow-200',
-        '#8B5CF6': 'bg-purple-200',
-        '#EC4899': 'bg-pink-200',
+        '#EF4444': 'bg-red-200 ',      // Rojo
+        '#3B82F6': 'bg-blue-200 ',     // Azul
+        '#10B981': 'bg-emerald-200 ',  // Verde
+        '#F59E0B': 'bg-amber-200 ',    // Amarillo/Amber
+        '#8B5CF6': 'bg-violet-200 ',   // Morado/Violeta
+        '#EC4899': 'bg-pink-200 ',     // Rosa
       };
-      className += colorMap[currentPlayer?.color || ''] || 'bg-gray-200';
+      const playerColor = currentPlayer?.color || '';
+      const bgClass = colorMap[playerColor];
+      if (bgClass) {
+        className += bgClass;
+      } else {
+        className += 'bg-gray-200 ';
+      }
     }
     
     // Priority 3: Other players' selections
     if (isOtherPlayerSelected) {
-      className += `ring-2 `;
       const colorMap: Record<string, string> = {
-        '#EF4444': 'ring-red-500',
-        '#3B82F6': 'ring-blue-500',
-        '#10B981': 'ring-green-500',
-        '#F59E0B': 'ring-yellow-500',
-        '#8B5CF6': 'ring-purple-500',
-        '#EC4899': 'ring-pink-500',
+        '#EF4444': 'ring-red-500 ',      // Rojo
+        '#3B82F6': 'ring-blue-500 ',     // Azul
+        '#10B981': 'ring-emerald-500 ',  // Verde
+        '#F59E0B': 'ring-amber-500 ',    // Amarillo/Amber
+        '#8B5CF6': 'ring-violet-500 ',   // Morado/Violeta
+        '#EC4899': 'ring-pink-500 ',     // Rosa
       };
-      className += colorMap[otherPlayerColor] || 'ring-gray-500';
+      const ringClass = colorMap[otherPlayerColor || ''];
+      if (ringClass) {
+        className += `ring-2 ${ringClass}`;
+      } else {
+        className += 'ring-2 ring-gray-500 ';
+      }
     }
     
     // Priority 4: Currently selected cell - highest priority
     if (isLocallySelected || isServerSelected) {
       const ringColorMap: Record<string, string> = {
-        '#EF4444': 'ring-red-500 bg-red-300',
-        '#3B82F6': 'ring-blue-500 bg-blue-300', 
-        '#10B981': 'ring-green-500 bg-green-300',
-        '#F59E0B': 'ring-yellow-500 bg-yellow-300',
-        '#8B5CF6': 'ring-purple-500 bg-purple-300',
-        '#EC4899': 'ring-pink-500 bg-pink-300',
+        '#EF4444': 'ring-red-500 bg-red-300 ',      // Rojo
+        '#3B82F6': 'ring-blue-500 bg-blue-300 ',     // Azul
+        '#10B981': 'ring-emerald-500 bg-emerald-300 ', // Verde
+        '#F59E0B': 'ring-amber-500 bg-amber-300 ',   // Amarillo/Amber
+        '#8B5CF6': 'ring-violet-500 bg-violet-300 ', // Morado/Violeta
+        '#EC4899': 'ring-pink-500 bg-pink-300 ',     // Rosa
       };
       const playerColor = currentPlayer?.color || '#3B82F6';
-      className += `ring-4 ${ringColorMap[playerColor] || 'ring-blue-500 bg-blue-300'} `;
+      const ringClass = ringColorMap[playerColor];
+      if (ringClass) {
+        className += `ring-4 ${ringClass}`;
+      } else {
+        className += 'ring-4 ring-blue-500 bg-blue-300 ';
+      }
     }
     
     return className;
