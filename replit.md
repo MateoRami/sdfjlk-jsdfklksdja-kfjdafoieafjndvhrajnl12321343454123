@@ -110,8 +110,6 @@ Changelog:
   * Smart note removal from row/column/box when correct numbers are placed
   * Improved UI responsiveness with optimistic updates and faster polling
   * Added smooth transitions and instant visual feedback for better UX
-  * Enhanced color theming - player's selected cell uses their chosen color
-  * Removed gray overlay from row/column/block highlighting for clearer colors
   * Improved visual feedback with blue-colored notes
   * Better user experience with clearer instructions
 ```
