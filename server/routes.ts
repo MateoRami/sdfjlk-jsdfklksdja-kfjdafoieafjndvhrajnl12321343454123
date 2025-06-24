@@ -19,8 +19,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid difficulty" });
       }
 
-      // Generate unique room code
-      const code = `ROOM_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      // Check if room with this name already exists
+      const existingRoom = await storage.getRoomByCode(name);
+      if (existingRoom) {
+        return res.status(400).json({ message: "Una sala con este nombre ya existe. Elige otro nombre." });
+      }
+      
+      // Use the room name as the code
+      const code = name;
       
       // Generate Sudoku puzzle
       const solution = generateSudoku();

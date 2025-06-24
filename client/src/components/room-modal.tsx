@@ -85,10 +85,10 @@ export default function RoomModal({ onCreateRoom, onJoinRoom, isCreating, isJoin
             <TabsContent value="join">
               <form onSubmit={handleJoinSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="joinCode">Código de Sala</Label>
+                  <Label htmlFor="joinCode">Nombre de la Sala</Label>
                   <Input
                     id="joinCode"
-                    placeholder="Ej: ROOM_ABC123"
+                    placeholder="Ej: MiSalaSudoku"
                     value={joinCode}
                     onChange={(e) => setJoinCode(e.target.value)}
                     required
@@ -114,6 +114,7 @@ export default function RoomModal({ onCreateRoom, onJoinRoom, isCreating, isJoin
                 <Button type="submit" className="w-full" disabled={isJoining}>
                   {isJoining ? "Uniéndose..." : "Unirse a la Sala"}
                 </Button>
+                <p className="text-xs text-gray-500 text-center mt-2">Ingresa el nombre exacto de la sala que alguien más creó</p>
               </form>
             </TabsContent>
             
@@ -123,11 +124,12 @@ export default function RoomModal({ onCreateRoom, onJoinRoom, isCreating, isJoin
                   <Label htmlFor="createName">Nombre de la Sala</Label>
                   <Input
                     id="createName"
-                    placeholder="Mi Sala de Sudoku"
+                    placeholder="MiSalaSudoku"
                     value={createName}
                     onChange={(e) => setCreateName(e.target.value)}
                     required
                   />
+                  <p className="text-xs text-gray-500">Este nombre será usado por otros jugadores para unirse a tu sala</p>
                 </div>
                 
                 <div className="space-y-2">

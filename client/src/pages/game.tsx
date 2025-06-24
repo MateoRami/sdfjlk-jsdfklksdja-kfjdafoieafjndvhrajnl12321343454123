@@ -60,7 +60,7 @@ export default function Game() {
       setGameTime(0);
       toast({
         title: "Sala creada",
-        description: `Código de sala: ${data.room.code}`,
+        description: `Nombre de la sala: ${data.room.name}`,
       });
     },
     onError: (error: Error) => {
