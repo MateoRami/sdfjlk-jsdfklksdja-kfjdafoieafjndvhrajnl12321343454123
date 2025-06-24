@@ -11,6 +11,7 @@ export const rooms = pgTable("rooms", {
   solution: jsonb("solution").notNull(), // 9x9 array with complete solution
   lockedCells: jsonb("locked_cells").notNull(), // 9x9 array of booleans
   notes: jsonb("notes").notNull().default('[]'), // 9x9 array of arrays with notes per cell
+  incorrectCells: jsonb("incorrect_cells").notNull().default('[]'), // 9x9 array of booleans for incorrect numbers
   errors: integer("errors").notNull().default(0),
   isGameOver: boolean("is_game_over").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),

@@ -8,6 +8,7 @@ interface SudokuBoardProps {
   board: number[][];
   lockedCells: boolean[][];
   notes: SudokuNotes;
+  incorrectCells?: boolean[][];
   players: Player[];
   currentPlayer: Player;
   isGameOver: boolean;
@@ -23,6 +24,7 @@ export default function SudokuBoard({
   board,
   lockedCells,
   notes,
+  incorrectCells,
   players,
   currentPlayer,
   isGameOver,
@@ -302,7 +304,9 @@ export default function SudokuBoard({
                   onClick={() => handleCellClick(rowIndex, colIndex)}
                 >
                   {lockedCells[rowIndex]?.[colIndex] || board[rowIndex][colIndex] !== 0 ? (
-                    <div className="w-full h-full flex items-center justify-center text-lg font-bold">
+                    <div className={`w-full h-full flex items-center justify-center text-lg font-bold ${
+                      incorrectCells?.[rowIndex]?.[colIndex] ? 'text-red-600' : ''
+                    }`}>
                       {board[rowIndex][colIndex] !== 0 ? board[rowIndex][colIndex] : ''}
                     </div>
                   ) : (

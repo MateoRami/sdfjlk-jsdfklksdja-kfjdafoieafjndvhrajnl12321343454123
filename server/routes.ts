@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertRoomSchema, insertPlayerSchema, insertMoveSchema, DIFFICULTIES } from "@shared/schema";
-import { generateSudoku, solveSudoku, isValidMove } from "../client/src/lib/sudoku";
+import { generateSudoku, solveSudoku, isValidMove, getAutoLockCells } from "../client/src/lib/sudoku";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -41,6 +41,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         solution,
         lockedCells,
         notes: Array(9).fill(null).map(() => Array(9).fill(null).map(() => [])),
+        incorrectCells: Array(9).fill(null).map(() => Array(9).fill(false)),
         errors: 0,
         isGameOver: false,
       });
@@ -155,9 +156,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Cell is locked" });
       }
 
-      const board = room.board as number[][];
+      const board = [...(room.board as number[][])];
       const roomNotes = room.notes as number[][][];
       const solution = room.solution as number[][];
+      const incorrectCells = [...(room.incorrectCells as boolean[][] || Array(9).fill(null).map(() => Array(9).fill(false)))];
       let isCorrect = true;
       let newErrors = room.errors;
 
@@ -171,14 +173,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Clear notes from this cell
         roomNotes[row][col] = [];
         
+        // Handle incorrect cells tracking
+        if (value !== null && !isCorrect) {
+          newErrors++;
+          incorrectCells[row][col] = true; // Mark as incorrect
+        } else {
+          incorrectCells[row][col] = false; // Clear incorrect flag
+        }
+        
         // If correct number, remove it from related notes in row, column, and box
         if (value !== null && isCorrect) {
           removeNumberFromRelatedNotes(roomNotes, row, col, value);
-        }
-        
-        // Only increment errors if placing incorrect number (not for clearing)
-        if (value !== null && !isCorrect) {
-          newErrors++;
         }
       } else if (moveType === 'note') {
         // Update notes
@@ -188,8 +193,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Clear cell
         board[row][col] = 0;
         roomNotes[row][col] = [];
+        incorrectCells[row][col] = false; // Clear incorrect flag
         isCorrect = true;
       }
+
+      // Auto-lock completed rows, columns, and blocks
+      const currentLocked = room.lockedCells as boolean[][];
+      const newLockedCells = getAutoLockCells(board, currentLocked);
 
       const isGameOver = newErrors >= 3;
 
@@ -197,6 +207,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateRoom(room.id, {
         board,
         notes: roomNotes,
+        incorrectCells,
+        lockedCells: newLockedCells,
         errors: newErrors,
         isGameOver,
       });

@@ -88,3 +88,88 @@ export function getProgress(board: number[][]): { completed: number; total: numb
   
   return { completed, total };
 }
+
+// Check if a row is complete and valid
+export function isRowComplete(board: number[][], row: number): boolean {
+  if (!board[row]) return false;
+  
+  const seen = new Set<number>();
+  for (let col = 0; col < 9; col++) {
+    const value = board[row][col];
+    if (value === 0) return false;
+    if (seen.has(value)) return false;
+    seen.add(value);
+  }
+  return seen.size === 9;
+}
+
+// Check if a column is complete and valid
+export function isColumnComplete(board: number[][], col: number): boolean {
+  const seen = new Set<number>();
+  for (let row = 0; row < 9; row++) {
+    if (!board[row]) return false;
+    const value = board[row][col];
+    if (value === 0) return false;
+    if (seen.has(value)) return false;
+    seen.add(value);
+  }
+  return seen.size === 9;
+}
+
+// Check if a 3x3 block is complete and valid
+export function isBlockComplete(board: number[][], blockRow: number, blockCol: number): boolean {
+  const seen = new Set<number>();
+  const startRow = blockRow * 3;
+  const startCol = blockCol * 3;
+  
+  for (let row = startRow; row < startRow + 3; row++) {
+    for (let col = startCol; col < startCol + 3; col++) {
+      if (!board[row]) return false;
+      const value = board[row][col];
+      if (value === 0) return false;
+      if (seen.has(value)) return false;
+      seen.add(value);
+    }
+  }
+  return seen.size === 9;
+}
+
+// Get all cells that should be auto-locked due to completed units
+export function getAutoLockCells(board: number[][], currentLocked: boolean[][]): boolean[][] {
+  const newLocked = currentLocked.map(row => [...row]);
+  
+  // Check rows
+  for (let row = 0; row < 9; row++) {
+    if (isRowComplete(board, row)) {
+      for (let col = 0; col < 9; col++) {
+        newLocked[row][col] = true;
+      }
+    }
+  }
+  
+  // Check columns
+  for (let col = 0; col < 9; col++) {
+    if (isColumnComplete(board, col)) {
+      for (let row = 0; row < 9; row++) {
+        newLocked[row][col] = true;
+      }
+    }
+  }
+  
+  // Check 3x3 blocks
+  for (let blockRow = 0; blockRow < 3; blockRow++) {
+    for (let blockCol = 0; blockCol < 3; blockCol++) {
+      if (isBlockComplete(board, blockRow, blockCol)) {
+        const startRow = blockRow * 3;
+        const startCol = blockCol * 3;
+        for (let row = startRow; row < startRow + 3; row++) {
+          for (let col = startCol; col < startCol + 3; col++) {
+            newLocked[row][col] = true;
+          }
+        }
+      }
+    }
+  }
+  
+  return newLocked;
+}

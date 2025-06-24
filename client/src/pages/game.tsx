@@ -332,6 +332,7 @@ export default function Game() {
                 board={gameState?.room.board as number[][] || []}
                 lockedCells={gameState?.room.lockedCells as boolean[][] || []}
                 notes={gameState?.room.notes as SudokuNotes || []}
+                incorrectCells={gameState?.room.incorrectCells as boolean[][] || []}
                 players={gameState?.players || []}
                 currentPlayer={currentPlayer}
                 isGameOver={gameState?.room.isGameOver || false}

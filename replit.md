@@ -123,6 +123,11 @@ Changelog:
   * Users can create rooms with custom names that others can join directly
   * Added validation to prevent duplicate room names
   * Updated UI to clarify that room name = access code
+- June 24, 2025. Advanced game mechanics:
+  * Auto-locking of completed rows, columns, and 3x3 blocks
+  * Incorrect numbers displayed in red for all players
+  * Enhanced visual feedback for wrong moves
+  * Improved game progression with automatic cell protection
 ```
 
 ## User Preferences
