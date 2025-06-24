@@ -121,6 +121,12 @@ export default function SudokuBoard({
       className += "bg-white focus:bg-blue-50 ";
     }
     
+    // Currently selected cell (prioritize local state for instant feedback)
+    const isLocallySelected = selectedCell?.row === row && selectedCell?.col === col;
+    const isServerSelected = !isLocallySelected && currentPlayer?.selectedCell && 
+                            (currentPlayer.selectedCell as any).row === row && 
+                            (currentPlayer.selectedCell as any).col === col;
+
     // Highlight same numbers
     if (shouldHighlightNumber) {
       className += "bg-blue-200 ";
@@ -139,12 +145,6 @@ export default function SudokuBoard({
       className += colorMap[currentPlayer?.color || ''] || 'bg-gray-100';
       className += " bg-opacity-40 ";
     }
-    
-    // Currently selected cell (prioritize local state for instant feedback)
-    const isLocallySelected = selectedCell?.row === row && selectedCell?.col === col;
-    const isServerSelected = !isLocallySelected && currentPlayer?.selectedCell && 
-                            (currentPlayer.selectedCell as any).row === row && 
-                            (currentPlayer.selectedCell as any).col === col;
     
     if (isLocallySelected || isServerSelected) {
       className += "ring-4 ring-blue-500 bg-blue-50 ";
