@@ -229,7 +229,7 @@ export default function SudokuBoard({
       {/* Status indicator */}
       {currentPlayer?.pencilMode && (
         <div className="text-center text-sm text-purple-600 font-medium mb-4 p-2 bg-purple-50 rounded-lg border border-purple-200">
-          <strong>Modo lápiz activo</strong> - Haz clic en números para crear notas posibles en la cuadrícula 3x3
+          <strong>Modo lápiz activo</strong> - Creando notas compartidas visibles para todos los jugadores
         </div>
       )}
 
@@ -255,12 +255,12 @@ export default function SudokuBoard({
                         {board[rowIndex][colIndex] !== 0 ? board[rowIndex][colIndex] : ''}
                       </div>
                       
-                      {/* Notes display - 3x3 grid for empty cells */}
+                      {/* Notes display - 3x3 grid for empty cells - visible to all players */}
                       {board[rowIndex][colIndex] === 0 && (
-                        <div className="absolute inset-0 pointer-events-none p-1">
-                          <div className="grid grid-cols-3 gap-0 w-full h-full">
+                        <div className="absolute inset-0 pointer-events-none p-0.5 flex items-center justify-center">
+                          <div className="grid grid-cols-3 gap-0 w-full h-full max-w-[36px] max-h-[36px]">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                              <div key={num} className="flex items-center justify-center text-[10px] font-medium text-blue-600 border-0">
+                              <div key={num} className="flex items-center justify-center text-[9px] font-bold text-blue-600 leading-none">
                                 {notes[rowIndex] && notes[rowIndex][colIndex] && notes[rowIndex][colIndex].includes(num) ? num : ''}
                               </div>
                             ))}
