@@ -227,9 +227,9 @@ export default function SudokuBoard({
       </div>
       
       {/* Status indicator */}
-      {currentPlayer.pencilMode && (
-        <div className="text-center text-sm text-purple-600 font-medium mb-2">
-          Modo lápiz activo - Haz clic en números para crear notas posibles
+      {currentPlayer?.pencilMode && (
+        <div className="text-center text-sm text-purple-600 font-medium mb-4 p-2 bg-purple-50 rounded-lg border border-purple-200">
+          <strong>Modo lápiz activo</strong> - Haz clic en números para crear notas posibles en la cuadrícula 3x3
         </div>
       )}
 
@@ -255,13 +255,13 @@ export default function SudokuBoard({
                         {board[rowIndex][colIndex] !== 0 ? board[rowIndex][colIndex] : ''}
                       </div>
                       
-                      {/* Notes display */}
-                      {notes[rowIndex] && notes[rowIndex][colIndex] && notes[rowIndex][colIndex].length > 0 && board[rowIndex][colIndex] === 0 && (
-                        <div className="absolute inset-0 pointer-events-none p-0.5">
-                          <div className="grid grid-cols-3 gap-0 w-full h-full text-xs">
+                      {/* Notes display - 3x3 grid for empty cells */}
+                      {board[rowIndex][colIndex] === 0 && (
+                        <div className="absolute inset-0 pointer-events-none p-1">
+                          <div className="grid grid-cols-3 gap-0 w-full h-full">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                              <div key={num} className="flex items-center justify-center font-medium text-blue-600">
-                                {notes[rowIndex][colIndex].includes(num) ? num : ''}
+                              <div key={num} className="flex items-center justify-center text-[10px] font-medium text-blue-600 border-0">
+                                {notes[rowIndex] && notes[rowIndex][colIndex] && notes[rowIndex][colIndex].includes(num) ? num : ''}
                               </div>
                             ))}
                           </div>
@@ -312,9 +312,11 @@ export default function SudokuBoard({
               }}
               disabled={isGameOver || !selectedCell || lockedCells[selectedCell?.row]?.[selectedCell?.col] || (selectedCell && board[selectedCell.row][selectedCell.col] !== 0)}
               className={`w-10 h-10 p-0 ${
-                currentPlayer.pencilMode && selectedCell && notes[selectedCell.row] && notes[selectedCell.row][selectedCell.col] && notes[selectedCell.row][selectedCell.col].includes(num)
-                  ? 'bg-blue-100 border-blue-500' 
+                currentPlayer?.pencilMode && selectedCell && notes[selectedCell.row] && notes[selectedCell.row][selectedCell.col] && notes[selectedCell.row][selectedCell.col].includes(num)
+                  ? 'bg-purple-100 border-purple-500 text-purple-700' 
                   : ''
+              } ${
+                currentPlayer?.pencilMode ? 'hover:bg-purple-50' : ''
               }`}
             >
               {num}

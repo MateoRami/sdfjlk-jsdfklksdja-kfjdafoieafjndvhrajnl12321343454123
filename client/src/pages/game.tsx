@@ -26,6 +26,16 @@ export default function Game() {
     refetchInterval: 2000, // Poll every 2 seconds
   });
 
+  // Update current player state when game state changes
+  useEffect(() => {
+    if (gameState && currentPlayer) {
+      const updatedPlayer = gameState.players.find(p => p.id === currentPlayer.id);
+      if (updatedPlayer) {
+        setCurrentPlayer(updatedPlayer);
+      }
+    }
+  }, [gameState, currentPlayer?.id]);
+
   // Timer effect
   useEffect(() => {
     if (!currentRoom || gameState?.room.isGameOver) return;
@@ -275,6 +285,11 @@ export default function Game() {
                   <Badge variant="outline" className="text-green-600">
                     En línea
                   </Badge>
+                  {currentPlayer?.pencilMode && (
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                      Modo Lápiz
+                    </Badge>
+                  )}
                   <Select defaultValue={currentRoom.difficulty}>
                     <SelectTrigger className="w-32">
                       <SelectValue />
