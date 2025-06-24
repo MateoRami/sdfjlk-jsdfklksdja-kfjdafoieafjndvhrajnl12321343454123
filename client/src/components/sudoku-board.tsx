@@ -95,12 +95,10 @@ export default function SudokuBoard({
 
   const getCellStyle = (row: number, col: number) => {
     const isLocked = lockedCells[row]?.[col];
-    const isSelected = selectedCell?.row === row && selectedCell?.col === col;
-    const playerColor = getPlayerColorForCell(row, col);
     const cellValue = board[row][col];
     
     // Check if this cell should be highlighted due to same number
-    const shouldHighlightNumber = currentPlayer.highlightedNumber && 
+    const shouldHighlightNumber = currentPlayer?.highlightedNumber && 
                                   cellValue !== 0 && 
                                   cellValue === currentPlayer.highlightedNumber;
     
@@ -113,27 +111,32 @@ export default function SudokuBoard({
        Math.floor(activeSelectedCell.col / 3) === Math.floor(col / 3))
     );
     
-    let className = "relative w-10 h-10 text-center font-bold border-0 focus:ring-2 focus:ring-blue-500 text-gray-900 transition-all duration-150 cursor-pointer ";
-    
-    if (isLocked) {
-      className += "bg-gray-100 ";
-    } else {
-      className += "bg-white focus:bg-blue-50 ";
-    }
-    
     // Currently selected cell (prioritize local state for instant feedback)
     const isLocallySelected = selectedCell?.row === row && selectedCell?.col === col;
     const isServerSelected = !isLocallySelected && currentPlayer?.selectedCell && 
                             (currentPlayer.selectedCell as any).row === row && 
                             (currentPlayer.selectedCell as any).col === col;
 
-    // Highlight same numbers
-    if (shouldHighlightNumber) {
+    // Check for other players' selections
+    const otherPlayerColor = getPlayerColorForCell(row, col);
+    const isOtherPlayerSelected = otherPlayerColor && !(isLocallySelected || isServerSelected);
+    
+    let className = "relative w-10 h-10 text-center font-bold border-0 focus:ring-2 focus:ring-blue-500 text-gray-900 transition-all duration-150 cursor-pointer ";
+    
+    // Base background
+    if (isLocked) {
+      className += "bg-gray-100 ";
+    } else {
+      className += "bg-white focus:bg-blue-50 ";
+    }
+    
+    // Priority 1: Highlight same numbers (lowest priority)
+    if (shouldHighlightNumber && !isInMyGroup && !isLocallySelected && !isServerSelected && !isOtherPlayerSelected) {
       className += "bg-blue-200 ";
     }
     
-    // Highlight related cells for current player only - more opaque
-    if (isInMyGroup && activeSelectedCell && !(isLocallySelected || isServerSelected)) {
+    // Priority 2: Highlight related cells for current player only
+    if (isInMyGroup && activeSelectedCell && !(isLocallySelected || isServerSelected) && !isOtherPlayerSelected) {
       const colorMap: Record<string, string> = {
         '#EF4444': 'bg-red-200',
         '#3B82F6': 'bg-blue-200',
@@ -145,7 +148,21 @@ export default function SudokuBoard({
       className += colorMap[currentPlayer?.color || ''] || 'bg-gray-200';
     }
     
-    // Currently selected cell - use player's color with more opacity
+    // Priority 3: Other players' selections
+    if (isOtherPlayerSelected) {
+      className += `ring-2 `;
+      const colorMap: Record<string, string> = {
+        '#EF4444': 'ring-red-500',
+        '#3B82F6': 'ring-blue-500',
+        '#10B981': 'ring-green-500',
+        '#F59E0B': 'ring-yellow-500',
+        '#8B5CF6': 'ring-purple-500',
+        '#EC4899': 'ring-pink-500',
+      };
+      className += colorMap[otherPlayerColor] || 'ring-gray-500';
+    }
+    
+    // Priority 4: Currently selected cell - highest priority
     if (isLocallySelected || isServerSelected) {
       const ringColorMap: Record<string, string> = {
         '#EF4444': 'ring-red-500 bg-red-300',
@@ -157,20 +174,6 @@ export default function SudokuBoard({
       };
       const playerColor = currentPlayer?.color || '#3B82F6';
       className += `ring-4 ${ringColorMap[playerColor] || 'ring-blue-500 bg-blue-300'} `;
-    }
-    
-    // Other players' selections
-    if (playerColor && !(isLocallySelected || isServerSelected)) {
-      className += `ring-2 `;
-      const colorMap: Record<string, string> = {
-        '#EF4444': 'ring-red-500',
-        '#3B82F6': 'ring-blue-500',
-        '#10B981': 'ring-green-500',
-        '#F59E0B': 'ring-yellow-500',
-        '#8B5CF6': 'ring-purple-500',
-        '#EC4899': 'ring-pink-500',
-      };
-      className += colorMap[playerColor] || 'ring-gray-500';
     }
     
     return className;
