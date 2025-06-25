@@ -242,7 +242,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.updateRoom(room.id, updateData);
 
-      // Record move
+      // Record move with previous state for better undo functionality
+      const previousValue = originalBoard[row][col];
+      const previousNotes = originalNotes[row][col] ? [...originalNotes[row][col]] : [];
+      
       const moveData = insertMoveSchema.parse({
         roomId: room.id,
         playerId,
@@ -252,6 +255,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: moveType === 'note' ? notes : null,
         moveType,
         isCorrect,
+        previousValue: previousValue || null,
+        previousNotes,
       });
 
       await storage.createMove(moveData);
@@ -384,11 +389,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const board = room.board as number[][];
       const roomNotes = room.notes as number[][][];
 
-      // Revert the move
+      // Intelligent move reversion - restore previous state
       if (lastMove.moveType === 'number') {
-        board[lastMove.row][lastMove.col] = 0;
+        // Restore previous number (if any)
+        board[lastMove.row][lastMove.col] = lastMove.previousValue || 0;
+        // Restore previous notes (if any) when removing a number
+        if (lastMove.previousNotes && lastMove.previousNotes.length > 0) {
+          roomNotes[lastMove.row][lastMove.col] = [...lastMove.previousNotes];
+        } else {
+          roomNotes[lastMove.row][lastMove.col] = [];
+        }
       } else if (lastMove.moveType === 'note') {
-        roomNotes[lastMove.row][lastMove.col] = [];
+        // Restore previous notes state
+        roomNotes[lastMove.row][lastMove.col] = lastMove.previousNotes ? [...lastMove.previousNotes] : [];
+      } else if (lastMove.moveType === 'clear') {
+        // Restore what was cleared (number or notes)
+        board[lastMove.row][lastMove.col] = lastMove.previousValue || 0;
+        roomNotes[lastMove.row][lastMove.col] = lastMove.previousNotes ? [...lastMove.previousNotes] : [];
       }
 
       // Remove the move from storage
