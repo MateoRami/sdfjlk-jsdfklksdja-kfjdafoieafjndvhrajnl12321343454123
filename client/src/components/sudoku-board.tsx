@@ -37,6 +37,7 @@ export default function SudokuBoard({
 }: SudokuBoardProps) {
   const [selectedCell, setSelectedCell] = useState<{row: number, col: number} | null>(null);
   const [pendingNotes, setPendingNotes] = useState<number[]>([]);
+  const [localHighlightedNumber, setLocalHighlightedNumber] = useState<number | null>(null);
 
   const handleCellClick = (row: number, col: number) => {
     if (isGameOver) return;
@@ -44,7 +45,12 @@ export default function SudokuBoard({
     const newSelection = { row, col };
     setSelectedCell(newSelection);
     
-    // Call selection callback immediately for instant UI feedback
+    // Set local highlighted number immediately for instant feedback
+    const cellValue = board[row][col];
+    const highlightedNumber = cellValue !== 0 ? cellValue : null;
+    setLocalHighlightedNumber(highlightedNumber);
+    
+    // Call selection callback for server sync (but UI is already responsive)
     onCellSelect(row, col);
     
     // If not locked and in pencil mode, load existing notes
@@ -95,12 +101,21 @@ export default function SudokuBoard({
     const isLocked = lockedCells[row]?.[col];
     const cellValue = board[row][col];
     
-    // Check if this cell should be highlighted due to same number from any player
+    // Check if this cell should be highlighted due to same number
+    // Prioritize local state for instant feedback, then check other players
     let shouldHighlightNumber = false;
-    for (const player of players) {
-      if (player.highlightedNumber && cellValue !== 0 && cellValue === player.highlightedNumber) {
-        shouldHighlightNumber = true;
-        break;
+    
+    // Check local highlighted number first (instant feedback)
+    if (localHighlightedNumber && cellValue !== 0 && cellValue === localHighlightedNumber) {
+      shouldHighlightNumber = true;
+    } else {
+      // Check other players' highlighted numbers
+      for (const player of players) {
+        if (player.id !== currentPlayer?.id && player.highlightedNumber && 
+            cellValue !== 0 && cellValue === player.highlightedNumber) {
+          shouldHighlightNumber = true;
+          break;
+        }
       }
     }
     

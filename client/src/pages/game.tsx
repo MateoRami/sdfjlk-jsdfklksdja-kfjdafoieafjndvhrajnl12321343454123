@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -18,12 +18,13 @@ export default function Game() {
   const [showRoomModal, setShowRoomModal] = useState(true);
   const [gameTime, setGameTime] = useState(0);
   const { toast } = useToast();
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Polling for game state updates - faster polling for better responsiveness
+  // Polling for game state updates - balanced polling for responsiveness vs performance
   const { data: gameState, isLoading } = useQuery<GameState>({
     queryKey: [`/api/rooms/${currentRoom?.id}/state`],
     enabled: !!currentRoom,
-    refetchInterval: 1000, // Poll every 1 second for better responsiveness
+    refetchInterval: 2000, // Poll every 2 seconds for better performance
   });
 
   // Update current player state when game state changes
@@ -121,25 +122,15 @@ export default function Game() {
     },
   });
 
-  // Update player selection mutation with optimistic updates
+  // Update player selection mutation with minimal server sync
   const updateSelectionMutation = useMutation({
     mutationFn: async (data: { row: number; col: number; highlightedNumber?: number | null } | null) => {
       const response = await apiRequest("PUT", `/api/players/${currentPlayer!.id}/selection`, data || {});
       return response.json();
     },
-    onMutate: async (data) => {
-      // Optimistic update - update local state immediately
-      if (currentPlayer && data) {
-        setCurrentPlayer({
-          ...currentPlayer,
-          selectedCell: { row: data.row, col: data.col },
-          highlightedNumber: data.highlightedNumber || null,
-        });
-      }
-    },
     onSuccess: () => {
-      // Invalidate queries to sync with server
-      queryClient.invalidateQueries({ queryKey: [`/api/rooms/${currentRoom?.id}/state`] });
+      // Don't invalidate queries immediately for better performance
+      // Let the regular polling handle syncing
     },
   });
 
@@ -199,14 +190,29 @@ export default function Game() {
     },
   });
 
-  const handleCellSelect = (row: number, col: number) => {
+  const handleCellSelect = useCallback((row: number, col: number) => {
     const board = gameState?.room.board as number[][];
     const cellValue = board && board[row] ? board[row][col] : 0;
     const highlightedNumber = cellValue !== 0 ? cellValue : null;
     
-    // Update selection immediately for instant feedback
-    updateSelectionMutation.mutate({ row, col, highlightedNumber });
-  };
+    // Update local state immediately for instant feedback
+    if (currentPlayer) {
+      setCurrentPlayer({
+        ...currentPlayer,
+        selectedCell: { row, col },
+        highlightedNumber,
+      });
+    }
+    
+    // Debounce server updates to reduce requests
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    debounceTimerRef.current = setTimeout(() => {
+      updateSelectionMutation.mutate({ row, col, highlightedNumber });
+    }, 300); // Wait 300ms before sending to server
+  }, [gameState, currentPlayer, updateSelectionMutation]);
 
   const handleCellChange = (row: number, col: number, value: number | null) => {
     makeMoveMutation.mutate({ row, col, value, moveType: 'number' });
