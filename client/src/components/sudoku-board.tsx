@@ -354,8 +354,9 @@ export default function SudokuBoard({
                       {/* Main number display or input */}
                       <div className={`w-full h-full flex items-center justify-center text-lg font-bold ${
                         incorrectCells?.[rowIndex]?.[colIndex] ? 'text-red-600' : ''
-                      }`}>
-                        {board[rowIndex][colIndex] !== 0 ? board[rowIndex][colIndex] : ''}
+                      } ${isGameOver && (board[rowIndex][colIndex] === 0 || !board[rowIndex][colIndex]) ? 'text-green-600' : ''}`}>
+                        {board[rowIndex][colIndex] !== 0 ? board[rowIndex][colIndex] : 
+                         (isGameOver && solution ? solution[rowIndex]?.[colIndex] || '' : '')}
                       </div>
                       
                       {/* Notes display - 3x3 grid for empty cells - visible to all players */}

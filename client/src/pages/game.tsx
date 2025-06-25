@@ -9,6 +9,7 @@ import SudokuBoard from "@/components/sudoku-board";
 import PlayerList from "@/components/player-list";
 import RoomModal from "@/components/room-modal";
 import GameStats from "@/components/game-stats";
+import NewGameModal from "@/components/new-game-modal";
 import { useToast } from "@/hooks/use-toast";
 import type { GameState, Player, Room, SudokuNotes, MoveType } from "@shared/schema";
 
@@ -16,6 +17,7 @@ export default function Game() {
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [showRoomModal, setShowRoomModal] = useState(true);
+  const [showNewGameModal, setShowNewGameModal] = useState(false);
   const { toast } = useToast();
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -264,9 +266,33 @@ export default function Game() {
   };
 
   const handleNewGame = () => {
-    // Reset game state
-    queryClient.invalidateQueries({ queryKey: [`/api/rooms/${currentRoom?.id}/state`] });
+    setShowNewGameModal(true);
   };
+
+  // New game mutation to reset current room with new difficulty
+  const newGameMutation = useMutation({
+    mutationFn: async (difficulty: string) => {
+      const response = await apiRequest("POST", `/api/rooms/${currentRoom!.id}/new-game`, {
+        difficulty,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      setShowNewGameModal(false);
+      queryClient.invalidateQueries({ queryKey: [`/api/rooms/${currentRoom?.id}/state`] });
+      toast({
+        title: "Nuevo juego iniciado",
+        description: "¡La sala ha sido reiniciada con un nuevo puzzle!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -374,16 +400,10 @@ export default function Game() {
                       Modo Lápiz
                     </Badge>
                   )}
-                  <Select defaultValue={currentRoom.difficulty}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="easy">Fácil</SelectItem>
-                      <SelectItem value="medium">Medio</SelectItem>
-                      <SelectItem value="hard">Difícil</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Badge variant="outline" className="text-blue-600">
+                    {currentRoom.difficulty === 'easy' ? 'Fácil' : 
+                     currentRoom.difficulty === 'medium' ? 'Medio' : 'Difícil'}
+                  </Badge>
                 </div>
               </div>
 
@@ -443,6 +463,14 @@ export default function Game() {
                   </Button>
                 )}
               </div>
+              
+              {/* New Game Modal */}
+              <NewGameModal
+                isOpen={showNewGameModal}
+                onClose={() => setShowNewGameModal(false)}
+                onStartNewGame={newGameMutation.mutate}
+                isLoading={newGameMutation.isPending}
+              />
             </div>
           </div>
 

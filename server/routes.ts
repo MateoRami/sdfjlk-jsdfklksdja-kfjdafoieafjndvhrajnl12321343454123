@@ -248,6 +248,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // New game endpoint - reset current room with new puzzle
+  app.post("/api/rooms/:id/new-game", async (req, res) => {
+    try {
+      const roomId = parseInt(req.params.id);
+      const { difficulty } = req.body;
+
+      if (!difficulty || !DIFFICULTIES[difficulty as keyof typeof DIFFICULTIES]) {
+        return res.status(400).json({ message: "Invalid difficulty" });
+      }
+
+      const room = await storage.updateRoom(roomId, { id: roomId });
+      if (!room) {
+        return res.status(404).json({ message: "Room not found" });
+      }
+
+      // Generate new Sudoku puzzle
+      const solution = generateSudoku();
+      const board = createPuzzle(solution, DIFFICULTIES[difficulty as keyof typeof DIFFICULTIES].filledCells);
+      const lockedCells = createLockedCells(board);
+
+      // Reset room state
+      const updatedRoom = await storage.updateRoom(roomId, {
+        difficulty,
+        board,
+        solution,
+        lockedCells,
+        notes: Array(9).fill(null).map(() => Array(9).fill(null).map(() => [])),
+        incorrectCells: Array(9).fill(null).map(() => Array(9).fill(false)),
+        errors: 0,
+        isGameOver: false,
+        gameStartedAt: new Date(),
+        gameEndedAt: null,
+        totalMoves: 0,
+      });
+
+      if (!updatedRoom) {
+        return res.status(500).json({ message: "Failed to reset room" });
+      }
+
+      res.json({ room: updatedRoom });
+    } catch (error) {
+      console.error("Error resetting room:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Update player selection
   app.put("/api/players/:playerId/selection", async (req, res) => {
     try {
