@@ -310,46 +310,54 @@ export default function SudokuBoard({
   // Global hotkeys handler
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Prevent hotkeys if user is typing in an input field
+      // Check if we're in a cell input first
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' && target.id.startsWith('cell-')) {
-        return; // Let cell input handle its own keys
+      const isCellInput = target.tagName === 'INPUT' && target.id.startsWith('cell-');
+      
+      // Handle hotkeys that work even in cell inputs
+      if (e.key.toLowerCase() === 'p' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        if (!isGameOver) {
+          handleTogglePencil();
+        }
+        return;
       }
-
-      // Only process hotkeys if not typing in other inputs
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+      
+      if (e.key.toLowerCase() === 'u' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        if (!isGameOver) {
+          onUndo();
+        }
+        return;
+      }
+      
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setSelectedCell(null);
+        // Blur any focused input
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
         return;
       }
 
-      switch (e.key.toLowerCase()) {
-        case 'p': // Toggle pencil mode
-          e.preventDefault();
-          if (!isGameOver) {
-            handleTogglePencil();
-          }
-          break;
-        case 'c': // Clear cell
-          e.preventDefault();
-          if (!isGameOver && selectedCell) {
-            handleClear();
-          }
-          break;
-        case 'u': // Undo
-          e.preventDefault();
-          if (!isGameOver) {
-            onUndo();
-          }
-          break;
-        case 'escape': // Deselect cell
-          e.preventDefault();
-          setSelectedCell(null);
-          break;
+      // Handle hotkeys that only work outside cell inputs
+      if (!isCellInput) {
+        switch (e.key.toLowerCase()) {
+          case 'c': // Clear cell
+            e.preventDefault();
+            if (!isGameOver && selectedCell) {
+              handleClear();
+            }
+            break;
+        }
       }
     };
 
-    document.addEventListener('keydown', handleGlobalKeyDown);
+    // Use capture phase to ensure we get the event before other handlers
+    document.addEventListener('keydown', handleGlobalKeyDown, true);
     return () => {
-      document.removeEventListener('keydown', handleGlobalKeyDown);
+      document.removeEventListener('keydown', handleGlobalKeyDown, true);
     };
   }, [isGameOver, selectedCell, handleTogglePencil, handleClear, onUndo, setSelectedCell]);
 
@@ -406,7 +414,7 @@ export default function SudokuBoard({
 
       {/* Hotkeys help */}
       <div className="text-center text-xs text-gray-500 mb-2">
-        <strong>Atajos:</strong> P (Lápiz) | C (Borrar) | U (Deshacer) | Esc (Deseleccionar) | 1-9 (Números) | Backspace/Delete (Borrar)
+        <strong>Atajos:</strong> <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">P</kbd> Lápiz | <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">C</kbd> Borrar | <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">U</kbd> Deshacer | <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">Esc</kbd> Deseleccionar | <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">1-9</kbd> Números
       </div>
 
       {/* Sudoku Board */}
@@ -464,7 +472,13 @@ export default function SudokuBoard({
                         onKeyDown={(e) => {
                           // Only process keydown if this cell is currently selected
                           if (selectedCell && selectedCell.row === rowIndex && selectedCell.col === colIndex) {
-                            if (e.key === 'Backspace' || e.key === 'Delete') {
+                            // Don't handle global hotkeys here - let them bubble up
+                            if (e.key.toLowerCase() === 'p' || e.key.toLowerCase() === 'u' || e.key === 'Escape') {
+                              return; // Let global handler deal with these
+                            }
+                            
+                            if (e.key === 'Backspace' || e.key === 'Delete' || e.key.toLowerCase() === 'c') {
+                              e.preventDefault();
                               handleClear();
                             } else if (e.key >= '1' && e.key <= '9') {
                               // Handle number keys with toggle deletion
