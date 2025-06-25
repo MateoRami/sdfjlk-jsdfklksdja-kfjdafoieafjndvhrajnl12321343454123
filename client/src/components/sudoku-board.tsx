@@ -105,8 +105,16 @@ export default function SudokuBoard({
         onNoteChange(row, col, currentNotes);
       }
     } else {
-      // Handle regular number input - this will clear notes and place number
-      onCellChange(row, col, numValue);
+      // Handle regular number input with toggle deletion
+      const currentCellValue = board[row][col];
+      
+      if (numValue !== null && currentCellValue === numValue) {
+        // If the same number is entered, delete it (toggle deletion)
+        onCellChange(row, col, null);
+      } else {
+        // Place the new number
+        onCellChange(row, col, numValue);
+      }
     }
   };
 

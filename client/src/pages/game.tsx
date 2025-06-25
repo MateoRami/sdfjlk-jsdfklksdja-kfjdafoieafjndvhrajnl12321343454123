@@ -234,7 +234,13 @@ export default function Game() {
       return;
     }
     
-    makeMoveMutation.mutate({ row, col, value, moveType: 'number' });
+    // Handle toggle deletion - if same number is entered, delete it
+    const currentValue = (gameState?.room.board as number[][])?.[row]?.[col];
+    if (value !== null && currentValue === value) {
+      makeMoveMutation.mutate({ row, col, value: null, moveType: 'number' });
+    } else {
+      makeMoveMutation.mutate({ row, col, value, moveType: 'number' });
+    }
   };
   
   // Helper function to check if a number is already completed
