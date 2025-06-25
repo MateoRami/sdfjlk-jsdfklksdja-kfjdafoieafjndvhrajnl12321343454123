@@ -143,6 +143,12 @@ Changelog:
   * Players joining mid-game see the correct elapsed time
   * Added game over screen with final statistics (time, moves, errors)
   * Added "New Game" button to restart with different difficulty
+- June 25, 2025. Logical Sudoku generation:
+  * Implemented advanced puzzle generation that ensures solvability through logic alone
+  * Added algorithms for naked singles and hidden singles detection
+  * Puzzles now guarantee at least one logical move is always available
+  * No more guessing required - every puzzle can be solved step by step using deduction
+  * Fallback system ensures puzzle generation even in edge cases
 - June 24, 2025. Room system improvements:
   * Room name now serves as the access code - no more random codes
   * Users can create rooms with custom names that others can join directly

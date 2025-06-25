@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertRoomSchema, insertPlayerSchema, insertMoveSchema, DIFFICULTIES } from "@shared/schema";
-import { generateSudoku, solveSudoku, isValidMove, getAutoLockCells, isCompleted } from "../client/src/lib/sudoku";
+import { generateSudoku, generateLogicalSudoku, solveSudoku, isValidMove, getAutoLockCells, isCompleted } from "../client/src/lib/sudoku";
 
 // Helper function to check if puzzle is completed correctly
 function isPuzzleCompleted(board: number[][], solution: number[][]): boolean {
@@ -42,9 +42,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use the room name as the code
       const code = name;
       
-      // Generate Sudoku puzzle
+      // Generate logical Sudoku puzzle
       const solution = generateSudoku();
-      const board = createPuzzle(solution, DIFFICULTIES[difficulty as keyof typeof DIFFICULTIES].filledCells);
+      const board = generateLogicalSudoku(DIFFICULTIES[difficulty as keyof typeof DIFFICULTIES].filledCells);
       const lockedCells = createLockedCells(board);
 
       const roomData = insertRoomSchema.parse({
@@ -280,9 +280,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Room not found" });
       }
 
-      // Generate new Sudoku puzzle
+      // Generate new logical Sudoku puzzle  
       const solution = generateSudoku();
-      const board = createPuzzle(solution, DIFFICULTIES[difficulty as keyof typeof DIFFICULTIES].filledCells);
+      const board = generateLogicalSudoku(DIFFICULTIES[difficulty as keyof typeof DIFFICULTIES].filledCells);
       const lockedCells = createLockedCells(board);
 
       // Reset room state
