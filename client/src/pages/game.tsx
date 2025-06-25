@@ -18,6 +18,7 @@ export default function Game() {
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [showRoomModal, setShowRoomModal] = useState(true);
   const [showNewGameModal, setShowNewGameModal] = useState(false);
+  const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
   const { toast } = useToast();
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -257,9 +258,25 @@ export default function Game() {
     undoMutation.mutate();
   };
 
-  const handleTogglePencil = (enabled: boolean) => {
-    togglePencilMutation.mutate(enabled);
-  };
+  const handleTogglePencil = useCallback((enabled: boolean) => {
+    if (currentPlayer) {
+      togglePencilMutation.mutate(enabled);
+      
+      // Force re-selection of current cell to ensure proper state sync
+      if (selectedCell) {
+        const { row, col } = selectedCell;
+        // Re-trigger selection to refresh state
+        setTimeout(() => {
+          setSelectedCell({ row, col });
+          
+          // Also update server selection to ensure sync
+          const board = gameState?.room.board as number[][];
+          const highlightedNumber = board && board[row] && board[row][col] !== 0 ? board[row][col] : null;
+          updateSelectionMutation.mutate({ row, col, highlightedNumber });
+        }, 50);
+      }
+    }
+  }, [currentPlayer, togglePencilMutation, selectedCell, gameState, updateSelectionMutation]);
 
   const handleLeaveRoom = () => {
     leaveRoomMutation.mutate();
@@ -417,6 +434,8 @@ export default function Game() {
                 currentPlayer={currentPlayer}
                 isGameOver={gameState?.room.isGameOver || false}
                 solution={gameState?.room.solution as number[][] || []}
+                selectedCell={selectedCell}
+                setSelectedCell={setSelectedCell}
                 onCellSelect={handleCellSelect}
                 onCellChange={handleCellChange}
                 onNoteChange={handleNoteChange}

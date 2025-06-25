@@ -13,6 +13,8 @@ interface SudokuBoardProps {
   currentPlayer: Player;
   isGameOver: boolean;
   solution?: number[][]; // Add solution for number completion checking
+  selectedCell: { row: number; col: number } | null;
+  setSelectedCell: (cell: { row: number; col: number } | null) => void;
   onCellSelect: (row: number, col: number) => void;
   onCellChange: (row: number, col: number, value: number | null) => void;
   onNoteChange: (row: number, col: number, notes: number[]) => void;
@@ -417,7 +419,28 @@ export default function SudokuBoard({
                 size="sm"
                 onClick={() => {
                   if (selectedCell && !lockedCells[selectedCell.row]?.[selectedCell.col] && !isCompleted) {
-                    handleCellChange(selectedCell.row, selectedCell.col, num.toString());
+                    // Use fresh state for pencil mode check
+                    const isPencilMode = currentPlayer.pencilMode;
+                    
+                    if (isPencilMode) {
+                      // Handle note mode
+                      const currentNotes = notes[selectedCell.row][selectedCell.col] || [];
+                      const newNotes = currentNotes.includes(num)
+                        ? currentNotes.filter(n => n !== num)
+                        : [...currentNotes, num].sort();
+                      
+                      onNoteChange(selectedCell.row, selectedCell.col, newNotes);
+                    } else {
+                      // Handle number mode - check for toggle deletion
+                      const currentValue = board[selectedCell.row][selectedCell.col];
+                      if (currentValue === num) {
+                        // Same number - delete it
+                        onCellChange(selectedCell.row, selectedCell.col, null);
+                      } else {
+                        // Different number - place it
+                        onCellChange(selectedCell.row, selectedCell.col, num);
+                      }
+                    }
                   }
                 }}
                 disabled={isGameOver || !selectedCell || lockedCells[selectedCell?.row]?.[selectedCell?.col] || isCompleted}
