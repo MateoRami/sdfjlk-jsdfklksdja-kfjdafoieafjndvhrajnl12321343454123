@@ -111,15 +111,20 @@ Changelog:
   * Removed duplicate buttons from game over screen
   * Solution display in green when game is lost
   * Difficulty selector replaced with current difficulty badge
-- January 3, 2025. Project migration and pencil mode improvements:
+- January 3, 2025. Project migration and comprehensive improvements:
   * Successfully migrated from Replit Agent to standard Replit environment
+  * Fixed critical pencil mode bug: selection now maintained when switching modes
+  * Fixed number highlighting bug: highlights update immediately after placing numbers
+  * Added comprehensive hotkey system: P (pencil), C (clear), U (undo), Esc (deselect), 1-9 (numbers)
+  * Implemented personal undo system: each player can only undo their own last move
+  * Enhanced undo functionality to restore complete cell state (value, notes, incorrect flag)
   * Enhanced pencil mode functionality for better note management
   * Notes remain persistent when incorrect numbers are placed
   * Smart note removal from row/column/box when correct numbers are placed
   * Improved UI responsiveness with optimistic updates and faster polling
   * Added smooth transitions and instant visual feedback for better UX
   * Improved visual feedback with blue-colored notes
-  * Better user experience with clearer instructions
+  * Better user experience with clearer instructions and hotkey indicators
   * Enhanced cell highlighting: ALL cells in same row/column/block now highlight with player's color
   * More opaque highlighting (bg-200 instead of bg-50) for better visibility
   * Selected cell borders now match player's color for better identification
