@@ -140,12 +140,12 @@ export default function SudokuBoard({
       className += "bg-white focus:bg-blue-50 ";
     }
 
-    // Highlight same numbers with light blue background
+    // Highlight same numbers with blue background - more intense for editable cells
     if (shouldHighlightNumber) {
       if (isLocked) {
         className = className.replace('bg-gray-300', 'bg-blue-300');
       } else {
-        className = className.replace('bg-white', 'bg-blue-100');
+        className = className.replace('bg-white', 'bg-blue-200'); // More intense blue for editable cells
       }
     }
     

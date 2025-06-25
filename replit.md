@@ -123,6 +123,7 @@ Changelog:
   * Improved responsiveness with faster polling (800ms) and reduced selection debounce (150ms)
   * Added completed number blocking - numbers that appear 9 times correctly are disabled in input pad and keyboard
   * Added optimistic updates for moves to make input feel more responsive
+  * Made number highlighting more intense for editable cells (blue-200 vs blue-100)
 - June 24, 2025. Room system improvements:
   * Room name now serves as the access code - no more random codes
   * Users can create rooms with custom names that others can join directly
