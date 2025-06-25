@@ -119,6 +119,7 @@ Changelog:
   * Fixed border alignment issues ensuring proper block separation
   * Changed to uniform 4-sided borders for selected cells using border-4 instead of ring-4
   * Added number highlighting feature: selecting any cell (including locked cells) highlights all cells with the same number in light blue
+  * Made number highlighting personal - only the player who selected the cell sees the highlighting, not all players
 - June 24, 2025. Room system improvements:
   * Room name now serves as the access code - no more random codes
   * Users can create rooms with custom names that others can join directly

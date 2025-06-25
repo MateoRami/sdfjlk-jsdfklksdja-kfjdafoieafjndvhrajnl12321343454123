@@ -102,21 +102,12 @@ export default function SudokuBoard({
     const cellValue = board[row][col];
     
     // Check if this cell should be highlighted due to same number
-    // Prioritize local state for instant feedback, then check other players
+    // Only highlight for the current player's selection (local highlighting only)
     let shouldHighlightNumber = false;
     
-    // Check local highlighted number first (instant feedback)
+    // Check local highlighted number (instant feedback for current player only)
     if (localHighlightedNumber && cellValue !== 0 && cellValue === localHighlightedNumber) {
       shouldHighlightNumber = true;
-    } else {
-      // Check other players' highlighted numbers
-      for (const player of players) {
-        if (player.id !== currentPlayer?.id && player.highlightedNumber && 
-            cellValue !== 0 && cellValue === player.highlightedNumber) {
-          shouldHighlightNumber = true;
-          break;
-        }
-      }
     }
     
     let className = "relative w-10 h-10 text-center font-bold border-0 focus:ring-2 focus:ring-blue-500 text-gray-900 transition-all duration-150 cursor-pointer ";
