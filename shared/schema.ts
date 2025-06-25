@@ -43,8 +43,6 @@ export const moves = pgTable("moves", {
   notes: jsonb("notes"), // array of numbers for notes
   moveType: text("move_type").notNull(), // 'number', 'note', 'clear'
   isCorrect: boolean("is_correct").notNull(),
-  previousValue: integer("previous_value"), // value that was in cell before this move
-  previousNotes: jsonb("previous_notes"), // notes that were in cell before this move
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 

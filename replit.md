@@ -149,24 +149,19 @@ Changelog:
   * Puzzles now guarantee at least one logical move is always available
   * No more guessing required - every puzzle can be solved step by step using deduction
   * Fallback system ensures puzzle generation even in edge cases
-- January 3, 2025. Project migration to Replit and comprehensive improvements:
+- January 3, 2025. Project migration to Replit and hotkeys implementation:
   * Successfully completed migration from Replit Agent to standard Replit environment
   * Fixed critical bug where pencil mode selection was lost after toggling
   * Fixed number highlighting bug - now updates immediately after placing numbers
   * Added comprehensive hotkey system for improved user experience:
-    - P: Toggle pencil mode (works globally)
-    - C: Clear selected cell (works when not typing)
-    - U: Undo last move (works globally)
-    - Esc: Deselect current cell and unfocus inputs
+    - P: Toggle pencil mode
+    - C: Clear selected cell
+    - U: Undo last move
+    - Esc: Deselect current cell
     - 1-9: Enter numbers directly
     - Backspace/Delete: Clear cell
   * Added visual hotkey indicators on buttons and help text
   * Improved keyboard navigation and accessibility
-  * Enhanced undo system with intelligent state restoration:
-    - Records previous cell state (numbers and notes) for each move
-    - Properly restores notes when undoing number placements
-    - Handles all move types correctly (numbers, notes, clear operations)
-    - Much more user-friendly undo behavior
 - June 24, 2025. Room system improvements:
   * Room name now serves as the access code - no more random codes
   * Users can create rooms with custom names that others can join directly

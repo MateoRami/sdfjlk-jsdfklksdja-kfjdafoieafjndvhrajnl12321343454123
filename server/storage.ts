@@ -113,8 +113,6 @@ export class MemStorage implements IStorage {
       value: insertMove.value || null,
       notes: insertMove.notes || null,
       moveType: insertMove.moveType || 'number',
-      previousValue: insertMove.previousValue || null,
-      previousNotes: insertMove.previousNotes || null,
       timestamp: new Date(),
     };
     this.moves.set(id, move);
