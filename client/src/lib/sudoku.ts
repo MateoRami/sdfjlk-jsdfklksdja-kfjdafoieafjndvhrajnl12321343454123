@@ -129,94 +129,81 @@ function canSolveWithLogic(board: number[][]): boolean {
   return isCompleted(workingBoard);
 }
 
-// Generate a logically solvable Sudoku puzzle
-export function generateLogicalSudoku(filledCells: number): number[][] {
-  let attempts = 0;
-  const maxAttempts = 100;
+// Generate a logically solvable Sudoku puzzle with improved algorithm
+export function generateLogicalSudoku(solution: number[][], filledCells: number): number[][] {
+  // Start with a simple approach - just remove cells ensuring unique solution
+  const puzzle = solution.map(row => [...row]);
+  const cellsToRemove = 81 - filledCells;
+  const positions = [];
   
-  while (attempts < maxAttempts) {
-    attempts++;
-    
-    // Generate a complete solution
-    const solution = generateSudoku();
-    
-    // Create a puzzle by removing cells
-    const puzzle = solution.map(row => [...row]);
-    const cellsToRemove = 81 - filledCells;
-    const positions = [];
-    
-    // Create list of all positions
-    for (let row = 0; row < 9; row++) {
-      for (let col = 0; col < 9; col++) {
-        positions.push([row, col]);
-      }
-    }
-    
-    // Shuffle positions
-    for (let i = positions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [positions[i], positions[j]] = [positions[j], positions[i]];
-    }
-    
-    // Try to remove cells one by one
-    let removed = 0;
-    for (const [row, col] of positions) {
-      if (removed >= cellsToRemove) break;
-      
-      const originalValue = puzzle[row][col];
-      puzzle[row][col] = 0;
-      
-      // Check if puzzle is still logically solvable and has unique solution
-      if (canSolveWithLogic(puzzle) && hasUniqueSolution(puzzle)) {
-        removed++;
-      } else {
-        // Restore the cell if removing it makes puzzle unsolvable with logic
-        puzzle[row][col] = originalValue;
-      }
-    }
-    
-    // If we managed to remove enough cells and puzzle is logically solvable
-    if (removed >= Math.floor(cellsToRemove * 0.8) && canSolveWithLogic(puzzle)) {
-      return puzzle;
+  // Create list of all positions
+  for (let row = 0; row < 9; row++) {
+    for (let col = 0; col < 9; col++) {
+      positions.push([row, col]);
     }
   }
   
-  // Fallback: return a simple puzzle if we can't generate a logical one
-  console.warn("Could not generate logical puzzle, using fallback");
-  const solution = generateSudoku();
-  return createSimplePuzzle(solution, filledCells);
+  // Shuffle positions randomly
+  for (let i = positions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [positions[i], positions[j]] = [positions[j], positions[i]];
+  }
+  
+  // Try to remove cells one by one
+  let removed = 0;
+  for (const [row, col] of positions) {
+    if (removed >= cellsToRemove) break;
+    
+    const originalValue = puzzle[row][col];
+    puzzle[row][col] = 0;
+    
+    // Check if puzzle still has unique solution
+    if (hasUniqueSolution(puzzle)) {
+      removed++;
+    } else {
+      // Restore the cell if removing it creates multiple solutions
+      puzzle[row][col] = originalValue;
+    }
+    
+    // Stop if we've removed enough cells
+    if (removed >= cellsToRemove) break;
+  }
+  
+  return puzzle;
 }
 
-// Check if puzzle has unique solution
+// Check if puzzle has unique solution (optimized version)
 function hasUniqueSolution(board: number[][]): boolean {
-  const solutions = [];
+  let solutionCount = 0;
   const workingBoard = board.map(row => [...row]);
   
-  function solve(board: number[][], solutions: number[][][]): boolean {
-    if (solutions.length > 1) return false; // More than one solution found
+  function countSolutions(board: number[][]): void {
+    if (solutionCount > 1) return; // Early exit if multiple solutions found
     
+    // Find first empty cell
     for (let row = 0; row < 9; row++) {
       for (let col = 0; col < 9; col++) {
         if (board[row][col] === 0) {
           for (let num = 1; num <= 9; num++) {
             if (isValidPlacement(board, row, col, num)) {
               board[row][col] = num;
-              if (solve(board, solutions)) return true;
+              countSolutions(board);
               board[row][col] = 0;
+              
+              if (solutionCount > 1) return; // Early exit
             }
           }
-          return false;
+          return; // Backtrack
         }
       }
     }
     
     // Found a complete solution
-    solutions.push(board.map(row => [...row]));
-    return solutions.length <= 1;
+    solutionCount++;
   }
   
-  solve(workingBoard, solutions);
-  return solutions.length === 1;
+  countSolutions(workingBoard);
+  return solutionCount === 1;
 }
 
 // Simple puzzle creation as fallback

@@ -42,9 +42,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use the room name as the code
       const code = name;
       
-      // Generate logical Sudoku puzzle
+      // Generate logical Sudoku puzzle with proper solution tracking
       const solution = generateSudoku();
-      const board = generateLogicalSudoku(DIFFICULTIES[difficulty as keyof typeof DIFFICULTIES].filledCells);
+      const board = generateLogicalSudoku(solution, DIFFICULTIES[difficulty as keyof typeof DIFFICULTIES].filledCells);
       const lockedCells = createLockedCells(board);
 
       const roomData = insertRoomSchema.parse({
@@ -280,9 +280,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Room not found" });
       }
 
-      // Generate new logical Sudoku puzzle  
+      // Generate new logical Sudoku puzzle with proper solution tracking
       const solution = generateSudoku();
-      const board = generateLogicalSudoku(DIFFICULTIES[difficulty as keyof typeof DIFFICULTIES].filledCells);
+      const board = generateLogicalSudoku(solution, DIFFICULTIES[difficulty as keyof typeof DIFFICULTIES].filledCells);
       const lockedCells = createLockedCells(board);
 
       // Reset room state
