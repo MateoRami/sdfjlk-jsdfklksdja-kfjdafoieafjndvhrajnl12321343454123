@@ -20,11 +20,11 @@ export default function Game() {
   const { toast } = useToast();
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Polling for game state updates - balanced polling for responsiveness vs performance
+  // Polling for game state updates - faster polling for better responsiveness
   const { data: gameState, isLoading } = useQuery<GameState>({
     queryKey: [`/api/rooms/${currentRoom?.id}/state`],
     enabled: !!currentRoom,
-    refetchInterval: 2000, // Poll every 2 seconds for better performance
+    refetchInterval: 800, // Poll every 800ms for better responsiveness
   });
 
   // Update current player state when game state changes
@@ -101,7 +101,7 @@ export default function Game() {
     },
   });
 
-  // Make move mutation
+  // Make move mutation with optimistic updates
   const makeMoveMutation = useMutation({
     mutationFn: async (data: { row: number; col: number; value?: number | null; notes?: number[]; moveType: MoveType }) => {
       const response = await apiRequest("POST", `/api/rooms/${currentRoom!.id}/moves`, {
@@ -109,6 +109,15 @@ export default function Game() {
         ...data,
       });
       return response.json();
+    },
+    onMutate: async (data) => {
+      // Optimistic update for faster UI response
+      if (gameState && data.moveType === 'number') {
+        const newBoard = [...(gameState.room.board as number[][])];
+        if (newBoard[data.row]) {
+          newBoard[data.row][data.col] = data.value || 0;
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/rooms/${currentRoom?.id}/state`] });
@@ -211,11 +220,40 @@ export default function Game() {
     
     debounceTimerRef.current = setTimeout(() => {
       updateSelectionMutation.mutate({ row, col, highlightedNumber });
-    }, 300); // Wait 300ms before sending to server
+    }, 150); // Wait 150ms before sending to server
   }, [gameState, currentPlayer, updateSelectionMutation]);
 
   const handleCellChange = (row: number, col: number, value: number | null) => {
+    // Check if the number is already completed (9 times in correct positions)
+    if (value && isNumberCompleted(value)) {
+      toast({
+        title: "Número completado",
+        description: `El número ${value} ya está completo en el tablero`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     makeMoveMutation.mutate({ row, col, value, moveType: 'number' });
+  };
+  
+  // Helper function to check if a number is already completed
+  const isNumberCompleted = (number: number): boolean => {
+    if (!gameState?.room.board || !gameState?.room.solution) return false;
+    
+    const board = gameState.room.board as number[][];
+    const solution = gameState.room.solution as number[][];
+    let correctCount = 0;
+    
+    for (let row = 0; row < 9; row++) {
+      for (let col = 0; col < 9; col++) {
+        if (board[row][col] === number && solution[row][col] === number) {
+          correctCount++;
+        }
+      }
+    }
+    
+    return correctCount >= 9;
   };
 
   const handleNoteChange = (row: number, col: number, notes: number[]) => {
@@ -342,6 +380,7 @@ export default function Game() {
                 players={gameState?.players || []}
                 currentPlayer={currentPlayer}
                 isGameOver={gameState?.room.isGameOver || false}
+                solution={gameState?.room.solution as number[][] || []}
                 onCellSelect={handleCellSelect}
                 onCellChange={handleCellChange}
                 onNoteChange={handleNoteChange}

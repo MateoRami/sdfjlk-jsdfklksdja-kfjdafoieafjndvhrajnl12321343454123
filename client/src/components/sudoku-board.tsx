@@ -12,6 +12,7 @@ interface SudokuBoardProps {
   players: Player[];
   currentPlayer: Player;
   isGameOver: boolean;
+  solution?: number[][]; // Add solution for number completion checking
   onCellSelect: (row: number, col: number) => void;
   onCellChange: (row: number, col: number, value: number | null) => void;
   onNoteChange: (row: number, col: number, notes: number[]) => void;
@@ -28,6 +29,7 @@ export default function SudokuBoard({
   players,
   currentPlayer,
   isGameOver,
+  solution,
   onCellSelect,
   onCellChange,
   onNoteChange,
@@ -38,6 +40,21 @@ export default function SudokuBoard({
   const [selectedCell, setSelectedCell] = useState<{row: number, col: number} | null>(null);
   const [pendingNotes, setPendingNotes] = useState<number[]>([]);
   const [localHighlightedNumber, setLocalHighlightedNumber] = useState<number | null>(null);
+  
+  // Helper function to check if a number is completed (9 correct instances)
+  const isNumberCompleted = (number: number): boolean => {
+    if (!board || !solution) return false;
+    
+    let correctCount = 0;
+    for (let row = 0; row < 9; row++) {
+      for (let col = 0; col < 9; col++) {
+        if (board[row][col] === number && solution[row][col] === number) {
+          correctCount++;
+        }
+      }
+    }
+    return correctCount >= 9;
+  };
 
   const handleCellClick = (row: number, col: number) => {
     if (isGameOver) return;
@@ -66,6 +83,11 @@ export default function SudokuBoard({
     
     const numValue = value === "" ? null : parseInt(value);
     if (numValue !== null && (numValue < 1 || numValue > 9)) return;
+    
+    // Check if number is completed before allowing input
+    if (numValue !== null && isNumberCompleted(numValue)) {
+      return; // Silently block completed numbers
+    }
     
     if (currentPlayer.pencilMode && numValue !== null) {
       // Handle notes - only if cell is empty
@@ -371,28 +393,34 @@ export default function SudokuBoard({
       {/* Number Input Pad (for mobile/easier input) */}
       <div className="flex justify-center">
         <div className="grid grid-cols-5 gap-2 max-w-xs">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-            <Button
-              key={num}
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                if (selectedCell && !lockedCells[selectedCell.row]?.[selectedCell.col] && board[selectedCell.row][selectedCell.col] === 0) {
-                  handleCellChange(selectedCell.row, selectedCell.col, num.toString());
-                }
-              }}
-              disabled={isGameOver || !selectedCell || lockedCells[selectedCell?.row]?.[selectedCell?.col] || (selectedCell && board[selectedCell.row][selectedCell.col] !== 0)}
-              className={`w-10 h-10 p-0 ${
-                currentPlayer?.pencilMode && selectedCell && notes[selectedCell.row] && notes[selectedCell.row][selectedCell.col] && notes[selectedCell.row][selectedCell.col].includes(num)
-                  ? 'bg-purple-100 border-purple-500 text-purple-700' 
-                  : ''
-              } ${
-                currentPlayer?.pencilMode ? 'hover:bg-purple-50' : ''
-              }`}
-            >
-              {num}
-            </Button>
-          ))}
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
+            const isCompleted = isNumberCompleted(num);
+            return (
+              <Button
+                key={num}
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (selectedCell && !lockedCells[selectedCell.row]?.[selectedCell.col] && board[selectedCell.row][selectedCell.col] === 0 && !isCompleted) {
+                    handleCellChange(selectedCell.row, selectedCell.col, num.toString());
+                  }
+                }}
+                disabled={isGameOver || !selectedCell || lockedCells[selectedCell?.row]?.[selectedCell?.col] || (selectedCell && board[selectedCell.row][selectedCell.col] !== 0) || isCompleted}
+                className={`w-10 h-10 p-0 ${
+                  isCompleted 
+                    ? 'bg-green-100 border-green-300 text-green-600 opacity-75' 
+                    : currentPlayer?.pencilMode && selectedCell && notes[selectedCell.row] && notes[selectedCell.row][selectedCell.col] && notes[selectedCell.row][selectedCell.col].includes(num)
+                      ? 'bg-purple-100 border-purple-500 text-purple-700' 
+                      : ''
+                } ${
+                  currentPlayer?.pencilMode && !isCompleted ? 'hover:bg-purple-50' : ''
+                }`}
+                title={isCompleted ? `Número ${num} completado` : ''}
+              >
+                {num}
+              </Button>
+            );
+          })}
           <Button
             variant="outline"
             size="sm"

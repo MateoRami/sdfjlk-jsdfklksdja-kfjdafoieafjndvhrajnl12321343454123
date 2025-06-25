@@ -120,6 +120,9 @@ Changelog:
   * Changed to uniform 4-sided borders for selected cells using border-4 instead of ring-4
   * Added number highlighting feature: selecting any cell (including locked cells) highlights all cells with the same number in light blue
   * Made number highlighting personal - only the player who selected the cell sees the highlighting, not all players
+  * Improved responsiveness with faster polling (800ms) and reduced selection debounce (150ms)
+  * Added completed number blocking - numbers that appear 9 times correctly are disabled in input pad and keyboard
+  * Added optimistic updates for moves to make input feel more responsive
 - June 24, 2025. Room system improvements:
   * Room name now serves as the access code - no more random codes
   * Users can create rooms with custom names that others can join directly
