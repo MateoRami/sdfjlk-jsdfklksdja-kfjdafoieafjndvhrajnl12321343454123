@@ -307,6 +307,52 @@ export default function SudokuBoard({
     }
   }, [selectedCell, currentPlayer.pencilMode]);
 
+  // Global hotkeys handler
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Prevent hotkeys if user is typing in an input field
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' && target.id.startsWith('cell-')) {
+        return; // Let cell input handle its own keys
+      }
+
+      // Only process hotkeys if not typing in other inputs
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      switch (e.key.toLowerCase()) {
+        case 'p': // Toggle pencil mode
+          e.preventDefault();
+          if (!isGameOver) {
+            handleTogglePencil();
+          }
+          break;
+        case 'c': // Clear cell
+          e.preventDefault();
+          if (!isGameOver && selectedCell) {
+            handleClear();
+          }
+          break;
+        case 'u': // Undo
+          e.preventDefault();
+          if (!isGameOver) {
+            onUndo();
+          }
+          break;
+        case 'escape': // Deselect cell
+          e.preventDefault();
+          setSelectedCell(null);
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, [isGameOver, selectedCell, handleTogglePencil, handleClear, onUndo, setSelectedCell]);
+
   if (!board || !board.length || !lockedCells || !lockedCells.length) {
     return <div className="flex justify-center items-center h-96">Cargando tablero...</div>;
   }
@@ -321,27 +367,33 @@ export default function SudokuBoard({
           onClick={handleTogglePencil}
           disabled={isGameOver}
           className={currentPlayer.pencilMode ? "bg-purple-600 hover:bg-purple-700 text-white" : ""}
+          title="Alternar modo lápiz (Tecla: P)"
         >
           <Pencil className="w-4 h-4 mr-1" />
           {currentPlayer.pencilMode ? "Lápiz Activo" : "Modo Lápiz"}
+          <span className="ml-1 text-xs opacity-75">(P)</span>
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={handleClear}
           disabled={isGameOver || !selectedCell || (selectedCell && lockedCells[selectedCell.row]?.[selectedCell.col])}
+          title="Borrar celda seleccionada (Tecla: C)"
         >
           <Eraser className="w-4 h-4 mr-1" />
           Borrar
+          <span className="ml-1 text-xs opacity-75">(C)</span>
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={onUndo}
           disabled={isGameOver}
+          title="Deshacer último movimiento (Tecla: U)"
         >
           <Undo2 className="w-4 h-4 mr-1" />
           Deshacer
+          <span className="ml-1 text-xs opacity-75">(U)</span>
         </Button>
       </div>
       
@@ -351,6 +403,11 @@ export default function SudokuBoard({
           <strong>Modo lápiz activo</strong> - Creando notas compartidas visibles para todos los jugadores
         </div>
       )}
+
+      {/* Hotkeys help */}
+      <div className="text-center text-xs text-gray-500 mb-2">
+        <strong>Atajos:</strong> P (Lápiz) | C (Borrar) | U (Deshacer) | Esc (Deseleccionar) | 1-9 (Números) | Backspace/Delete (Borrar)
+      </div>
 
       {/* Sudoku Board */}
       <div className="flex justify-center">
