@@ -39,20 +39,16 @@ export default function SudokuBoard({
   const [pendingNotes, setPendingNotes] = useState<number[]>([]);
 
   const handleCellClick = (row: number, col: number) => {
-    if (isGameOver || lockedCells[row]?.[col]) return;
+    if (isGameOver) return;
     
     const newSelection = { row, col };
     setSelectedCell(newSelection);
     
-    // Get highlighted number for this cell
-    const cellValue = board[row][col];
-    const highlightedNumber = cellValue !== 0 ? cellValue : null;
-    
     // Call selection callback immediately for instant UI feedback
     onCellSelect(row, col);
     
-    // If in pencil mode, load existing notes
-    if (currentPlayer?.pencilMode && notes[row] && notes[row][col]) {
+    // If not locked and in pencil mode, load existing notes
+    if (!lockedCells[row]?.[col] && currentPlayer?.pencilMode && notes[row] && notes[row][col]) {
       setPendingNotes([...notes[row][col]]);
     } else {
       setPendingNotes([]);
@@ -99,10 +95,14 @@ export default function SudokuBoard({
     const isLocked = lockedCells[row]?.[col];
     const cellValue = board[row][col];
     
-    // Check if this cell should be highlighted due to same number
-    const shouldHighlightNumber = currentPlayer.highlightedNumber && 
-                                  cellValue !== 0 && 
-                                  cellValue === currentPlayer.highlightedNumber;
+    // Check if this cell should be highlighted due to same number from any player
+    let shouldHighlightNumber = false;
+    for (const player of players) {
+      if (player.highlightedNumber && cellValue !== 0 && cellValue === player.highlightedNumber) {
+        shouldHighlightNumber = true;
+        break;
+      }
+    }
     
     let className = "relative w-10 h-10 text-center font-bold border-0 focus:ring-2 focus:ring-blue-500 text-gray-900 transition-all duration-150 cursor-pointer ";
     
@@ -112,9 +112,13 @@ export default function SudokuBoard({
       className += "bg-white focus:bg-blue-50 ";
     }
 
-    // Highlight same numbers
+    // Highlight same numbers with light blue background
     if (shouldHighlightNumber) {
-      className += "bg-blue-200 ";
+      if (isLocked) {
+        className = className.replace('bg-gray-300', 'bg-blue-300');
+      } else {
+        className = className.replace('bg-white', 'bg-blue-100');
+      }
     }
     
     // Check all players' selections and apply highlighting
