@@ -421,13 +421,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentLocked = room.lockedCells as boolean[][];
       const newLockedCells = getAutoLockCells(board, createLockedCells(board));
 
-      // Update room with restored state
+      // Update room with restored state (don't modify error count)
       await storage.updateRoom(room.id, {
         board,
         notes: roomNotes,
         incorrectCells,
         lockedCells: newLockedCells,
-        errors: Math.max(0, (room.errors || 0) - (lastMove.isCorrect ? 0 : 1)), // Decrease errors if undoing incorrect move
+        // Don't modify errors - they represent the historical count of mistakes made
       });
 
       // Get updated game state
