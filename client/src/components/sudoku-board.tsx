@@ -352,7 +352,9 @@ export default function SudokuBoard({
                   ) : (
                     <>
                       {/* Main number display or input */}
-                      <div className="w-full h-full flex items-center justify-center text-lg font-bold">
+                      <div className={`w-full h-full flex items-center justify-center text-lg font-bold ${
+                        incorrectCells?.[rowIndex]?.[colIndex] ? 'text-red-600' : ''
+                      }`}>
                         {board[rowIndex][colIndex] !== 0 ? board[rowIndex][colIndex] : ''}
                       </div>
                       
