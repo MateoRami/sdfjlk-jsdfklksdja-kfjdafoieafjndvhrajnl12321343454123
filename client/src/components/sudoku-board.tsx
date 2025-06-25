@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Pencil, Eraser, Undo2, Trash2 } from "lucide-react";
@@ -297,6 +297,16 @@ export default function SudokuBoard({
     }
   };
 
+  // Auto-focus the selected cell when it changes or when pencil mode changes
+  useEffect(() => {
+    if (selectedCell && !isGameOver) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        focusSelectedCell();
+      }, 10);
+    }
+  }, [selectedCell, currentPlayer.pencilMode]);
+
   if (!board || !board.length || !lockedCells || !lockedCells.length) {
     return <div className="flex justify-center items-center h-96">Cargando tablero...</div>;
   }
@@ -388,14 +398,22 @@ export default function SudokuBoard({
                         type="text"
                         maxLength={1}
                         value=""
-                        onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                        onChange={(e) => {
+                          // Only process input if this cell is currently selected
+                          if (selectedCell && selectedCell.row === rowIndex && selectedCell.col === colIndex) {
+                            handleCellChange(rowIndex, colIndex, e.target.value);
+                          }
+                        }}
                         onKeyDown={(e) => {
-                          if (e.key === 'Backspace' || e.key === 'Delete') {
-                            handleClear();
-                          } else if (e.key >= '1' && e.key <= '9') {
-                            // Handle number keys with toggle deletion
-                            e.preventDefault();
-                            handleCellChange(rowIndex, colIndex, e.key);
+                          // Only process keydown if this cell is currently selected
+                          if (selectedCell && selectedCell.row === rowIndex && selectedCell.col === colIndex) {
+                            if (e.key === 'Backspace' || e.key === 'Delete') {
+                              handleClear();
+                            } else if (e.key >= '1' && e.key <= '9') {
+                              // Handle number keys with toggle deletion
+                              e.preventDefault();
+                              handleCellChange(rowIndex, colIndex, e.key);
+                            }
                           }
                         }}
                         disabled={isGameOver}
