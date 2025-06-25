@@ -409,11 +409,11 @@ export default function SudokuBoard({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  if (selectedCell && !lockedCells[selectedCell.row]?.[selectedCell.col] && board[selectedCell.row][selectedCell.col] === 0 && !isCompleted) {
+                  if (selectedCell && !lockedCells[selectedCell.row]?.[selectedCell.col] && !isCompleted) {
                     handleCellChange(selectedCell.row, selectedCell.col, num.toString());
                   }
                 }}
-                disabled={isGameOver || !selectedCell || lockedCells[selectedCell?.row]?.[selectedCell?.col] || (selectedCell && board[selectedCell.row][selectedCell.col] !== 0) || isCompleted}
+                disabled={isGameOver || !selectedCell || lockedCells[selectedCell?.row]?.[selectedCell?.col] || isCompleted}
                 className={`w-10 h-10 p-0 ${
                   isCompleted 
                     ? 'bg-green-100 border-green-300 text-green-600 opacity-75' 
