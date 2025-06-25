@@ -48,6 +48,7 @@ export class MemStorage implements IStorage {
       id,
       errors: insertRoom.errors || 0,
       isGameOver: insertRoom.isGameOver || false,
+      isWon: insertRoom.isWon || false,
       notes: insertRoom.notes || Array(9).fill(null).map(() => Array(9).fill(null).map(() => [])),
       gameStartedAt: now, // Initialize timer when room is created
       gameEndedAt: null,

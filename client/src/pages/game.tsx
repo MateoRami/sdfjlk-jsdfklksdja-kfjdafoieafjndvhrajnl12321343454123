@@ -426,11 +426,25 @@ export default function Game() {
               />
 
               {gameState?.room.isGameOver && (
-                <div className="mt-6 p-6 bg-red-50 border border-red-200 rounded-lg text-center">
-                  <h2 className="text-2xl font-bold text-red-800 mb-4">¡Juego Terminado!</h2>
+                <div className={`mt-6 p-6 border rounded-lg text-center ${
+                  gameState.room.isWon 
+                    ? 'bg-green-50 border-green-200' 
+                    : 'bg-red-50 border-red-200'
+                }`}>
+                  <h2 className={`text-2xl font-bold mb-4 ${
+                    gameState.room.isWon 
+                      ? 'text-green-800' 
+                      : 'text-red-800'
+                  }`}>
+                    {gameState.room.isWon ? '¡Felicidades, Ganaron!' : '¡Juego Terminado!'}
+                  </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-red-600">{formatTime(currentGameTime)}</div>
+                      <div className={`text-3xl font-bold ${
+                        gameState.room.isWon ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {formatTime(currentGameTime)}
+                      </div>
                       <div className="text-sm text-gray-600">Tiempo jugado</div>
                     </div>
                     <div className="text-center">
@@ -442,7 +456,11 @@ export default function Game() {
                       <div className="text-sm text-gray-600">Errores cometidos</div>
                     </div>
                   </div>
-                  <p className="text-red-700">Se alcanzaron 3 errores. ¡Mejor suerte la próxima vez!</p>
+                  <p className={gameState.room.isWon ? 'text-green-700' : 'text-red-700'}>
+                    {gameState.room.isWon 
+                      ? '¡Completaron el puzzle correctamente! ¡Excelente trabajo en equipo!' 
+                      : 'Se alcanzaron 3 errores. ¡Mejor suerte la próxima vez!'}
+                  </p>
                 </div>
               )}
 

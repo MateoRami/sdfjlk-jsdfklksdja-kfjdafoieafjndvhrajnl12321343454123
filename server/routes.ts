@@ -2,7 +2,21 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertRoomSchema, insertPlayerSchema, insertMoveSchema, DIFFICULTIES } from "@shared/schema";
-import { generateSudoku, solveSudoku, isValidMove, getAutoLockCells } from "../client/src/lib/sudoku";
+import { generateSudoku, solveSudoku, isValidMove, getAutoLockCells, isCompleted } from "../client/src/lib/sudoku";
+
+// Helper function to check if puzzle is completed correctly
+function isPuzzleCompleted(board: number[][], solution: number[][]): boolean {
+  if (!isCompleted(board)) return false;
+  
+  for (let row = 0; row < 9; row++) {
+    for (let col = 0; col < 9; col++) {
+      if (board[row][col] !== solution[row][col]) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -201,7 +215,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentLocked = room.lockedCells as boolean[][];
       const newLockedCells = getAutoLockCells(board, currentLocked);
 
-      const isGameOver = newErrors >= 3;
+      // Check if puzzle is completed (won)
+      const isWon = isPuzzleCompleted(board, solution);
+      const isGameOver = newErrors >= 3 || isWon;
       
       // Calculate total moves
       const currentMoves = await storage.getRecentMoves(room.id, 1000); // Get all moves
@@ -215,6 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lockedCells: newLockedCells,
         errors: newErrors,
         isGameOver,
+        isWon,
         totalMoves,
       };
 
@@ -278,6 +295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         incorrectCells: Array(9).fill(null).map(() => Array(9).fill(false)),
         errors: 0,
         isGameOver: false,
+        isWon: false,
         gameStartedAt: new Date(),
         gameEndedAt: null,
         totalMoves: 0,
