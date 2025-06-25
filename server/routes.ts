@@ -202,16 +202,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newLockedCells = getAutoLockCells(board, currentLocked);
 
       const isGameOver = newErrors >= 3;
+      
+      // Calculate total moves
+      const currentMoves = await storage.getRecentMoves(room.id, 1000); // Get all moves
+      const totalMoves = currentMoves.length + 1; // +1 for current move
 
       // Update room
-      await storage.updateRoom(room.id, {
+      const updateData: any = {
         board,
         notes: roomNotes,
         incorrectCells,
         lockedCells: newLockedCells,
         errors: newErrors,
         isGameOver,
-      });
+        totalMoves,
+      };
+
+      // If game ends, set end time
+      if (isGameOver && !room.isGameOver) {
+        updateData.gameEndedAt = new Date();
+      }
+
+      await storage.updateRoom(room.id, updateData);
 
       // Record move
       const moveData = insertMoveSchema.parse({

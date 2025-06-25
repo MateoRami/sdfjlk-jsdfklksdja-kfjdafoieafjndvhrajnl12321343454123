@@ -16,7 +16,7 @@ export default function Game() {
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [showRoomModal, setShowRoomModal] = useState(true);
-  const [gameTime, setGameTime] = useState(0);
+  const [, setGameTime] = useState(0); // Remove local game time
   const { toast } = useToast();
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -285,8 +285,38 @@ export default function Game() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Calculate game time from server timestamps
+  const getGameTime = (): number => {
+    if (!gameState?.room.gameStartedAt) return 0;
+    
+    const startTime = new Date(gameState.room.gameStartedAt).getTime();
+    const endTime = gameState.room.gameEndedAt 
+      ? new Date(gameState.room.gameEndedAt).getTime()
+      : Date.now();
+    
+    return Math.floor((endTime - startTime) / 1000);
+  };
+
+  // Update game time every second for live display
+  const [currentGameTime, setCurrentGameTime] = useState(0);
+  
+  useEffect(() => {
+    if (!gameState?.room) return;
+    
+    const updateTime = () => {
+      setCurrentGameTime(getGameTime());
+    };
+    
+    updateTime(); // Initial update
+    
+    if (!gameState.room.isGameOver) {
+      const timer = setInterval(updateTime, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [gameState?.room]);
 
   if (showRoomModal) {
     return (
@@ -346,7 +376,7 @@ export default function Game() {
                   <div className="flex items-center space-x-2">
                     <Clock className="text-blue-500 h-4 w-4" />
                     <span className="text-sm font-medium text-gray-700">Tiempo:</span>
-                    <span className="text-sm text-gray-600">{formatTime(gameTime)}</span>
+                    <span className="text-sm text-gray-600">{formatTime(currentGameTime)}</span>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -388,6 +418,33 @@ export default function Game() {
                 onUndo={handleUndo}
                 onTogglePencil={handleTogglePencil}
               />
+
+              {gameState?.room.isGameOver && (
+                <div className="mt-6 p-6 bg-red-50 border border-red-200 rounded-lg text-center">
+                  <h2 className="text-2xl font-bold text-red-800 mb-4">¡Juego Terminado!</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-red-600">{formatTime(currentGameTime)}</div>
+                      <div className="text-sm text-gray-600">Tiempo jugado</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-600">{gameState.room.totalMoves || gameState.recentMoves.length}</div>
+                      <div className="text-sm text-gray-600">Movimientos totales</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-orange-600">{gameState.room.errors}</div>
+                      <div className="text-sm text-gray-600">Errores cometidos</div>
+                    </div>
+                  </div>
+                  <p className="text-red-700 mb-4">Se alcanzaron 3 errores. ¡Mejor suerte la próxima vez!</p>
+                  <button
+                    onClick={() => setShowRoomModal(true)}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    Jugar Nueva Partida
+                  </button>
+                </div>
+              )}
 
               {/* Game Actions */}
               <div className="flex justify-center mt-6 space-x-4">

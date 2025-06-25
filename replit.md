@@ -128,6 +128,13 @@ Changelog:
   * Added toggle deletion - entering the same number that's already in a cell will delete it
   * Works with both keyboard input and number pad buttons
   * Provides intuitive way to remove numbers without using delete/clear buttons
+- June 25, 2025. Game completion and timer improvements:
+  * Added proper game over system when 3 errors are reached
+  * Implemented global room timer that syncs across all players
+  * Timer starts when room is created and stops when game ends
+  * Players joining mid-game see the correct elapsed time
+  * Added game over screen with final statistics (time, moves, errors)
+  * Added "New Game" button to restart with different difficulty
 - June 24, 2025. Room system improvements:
   * Room name now serves as the access code - no more random codes
   * Users can create rooms with custom names that others can join directly

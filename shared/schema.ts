@@ -14,6 +14,9 @@ export const rooms = pgTable("rooms", {
   incorrectCells: jsonb("incorrect_cells").notNull().default('[]'), // 9x9 array of booleans for incorrect numbers
   errors: integer("errors").notNull().default(0),
   isGameOver: boolean("is_game_over").notNull().default(false),
+  gameStartedAt: timestamp("game_started_at").defaultNow().notNull(),
+  gameEndedAt: timestamp("game_ended_at"),
+  totalMoves: integer("total_moves").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

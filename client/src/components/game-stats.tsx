@@ -7,11 +7,19 @@ interface GameStatsProps {
   board: number[][];
   moves: Move[];
   errors: number;
+  gameTime: number;
+  isGameOver: boolean;
 }
 
-export default function GameStats({ board, moves, errors }: GameStatsProps) {
+export default function GameStats({ board, moves, errors, gameTime, isGameOver }: GameStatsProps) {
   const progress = getProgress(board || []);
   const progressPercentage = Math.round((progress.completed / progress.total) * 100);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
