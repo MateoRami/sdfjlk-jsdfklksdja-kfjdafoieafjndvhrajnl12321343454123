@@ -343,7 +343,7 @@ export default function SudokuBoard({
                   className={`${getCellStyle(rowIndex, colIndex)} sudoku-cell-${rowIndex}-${colIndex}`}
                   onClick={() => handleCellClick(rowIndex, colIndex)}
                 >
-                  {lockedCells[rowIndex]?.[colIndex] || board[rowIndex][colIndex] !== 0 ? (
+                  {lockedCells[rowIndex]?.[colIndex] ? (
                     <div className={`w-full h-full flex items-center justify-center text-lg font-bold ${
                       incorrectCells?.[rowIndex]?.[colIndex] ? 'text-red-600' : ''
                     }`}>
@@ -369,7 +369,7 @@ export default function SudokuBoard({
                         </div>
                       )}
                       
-                      {/* Hidden input for keyboard capture */}
+                      {/* Hidden input for keyboard capture - works for both empty and filled cells */}
                       <input
                         id={`cell-${rowIndex}-${colIndex}`}
                         type="text"
@@ -379,6 +379,10 @@ export default function SudokuBoard({
                         onKeyDown={(e) => {
                           if (e.key === 'Backspace' || e.key === 'Delete') {
                             handleClear();
+                          } else if (e.key >= '1' && e.key <= '9') {
+                            // Handle number keys with toggle deletion
+                            e.preventDefault();
+                            handleCellChange(rowIndex, colIndex, e.key);
                           }
                         }}
                         disabled={isGameOver}
