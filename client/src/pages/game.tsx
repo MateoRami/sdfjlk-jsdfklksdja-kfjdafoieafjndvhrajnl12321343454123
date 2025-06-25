@@ -16,7 +16,6 @@ export default function Game() {
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [showRoomModal, setShowRoomModal] = useState(true);
-  const [, setGameTime] = useState(0); // Remove local game time
   const { toast } = useToast();
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -37,16 +36,7 @@ export default function Game() {
     }
   }, [gameState, currentPlayer?.id]);
 
-  // Timer effect
-  useEffect(() => {
-    if (!currentRoom || gameState?.room.isGameOver) return;
-    
-    const interval = setInterval(() => {
-      setGameTime(prev => prev + 1);
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, [currentRoom, gameState?.room.isGameOver]);
+
 
   // Create room mutation
   const createRoomMutation = useMutation({
@@ -58,7 +48,6 @@ export default function Game() {
       setCurrentRoom(data.room);
       setCurrentPlayer(data.player);
       setShowRoomModal(false);
-      setGameTime(0);
       toast({
         title: "Sala creada",
         description: `Nombre de la sala: ${data.room.name}`,
@@ -86,7 +75,6 @@ export default function Game() {
       setCurrentRoom(data.room);
       setCurrentPlayer(data.player);
       setShowRoomModal(false);
-      setGameTime(0);
       toast({
         title: "Unido a la sala",
         description: `Bienvenido a ${data.room.name}`,
@@ -195,7 +183,6 @@ export default function Game() {
       setCurrentRoom(null);
       setCurrentPlayer(null);
       setShowRoomModal(true);
-      setGameTime(0);
     },
   });
 
@@ -278,7 +265,6 @@ export default function Game() {
 
   const handleNewGame = () => {
     // Reset game state
-    setGameTime(0);
     queryClient.invalidateQueries({ queryKey: [`/api/rooms/${currentRoom?.id}/state`] });
   };
 

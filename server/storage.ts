@@ -42,13 +42,18 @@ export class MemStorage implements IStorage {
 
   async createRoom(insertRoom: InsertRoom): Promise<Room> {
     const id = this.currentRoomId++;
+    const now = new Date();
     const room: Room = {
       ...insertRoom,
       id,
       errors: insertRoom.errors || 0,
       isGameOver: insertRoom.isGameOver || false,
       notes: insertRoom.notes || Array(9).fill(null).map(() => Array(9).fill(null).map(() => [])),
-      createdAt: new Date(),
+      gameStartedAt: now, // Initialize timer when room is created
+      gameEndedAt: null,
+      totalMoves: insertRoom.totalMoves || 0,
+      incorrectCells: insertRoom.incorrectCells || Array(9).fill(null).map(() => Array(9).fill(false)),
+      createdAt: now,
     };
     this.rooms.set(id, room);
     return room;
