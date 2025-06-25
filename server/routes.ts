@@ -242,9 +242,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.updateRoom(room.id, updateData);
 
-      // Record move with previous state for better undo functionality
-      const previousValue = originalBoard[row][col];
-      const previousNotes = originalNotes[row][col] ? [...originalNotes[row][col]] : [];
+      // Record move with previous state for better undo functionality  
+      const previousValue = (room.board as number[][])[row][col];
+      const previousNotes = (room.notes as number[][][])[row][col] ? [...(room.notes as number[][][])[row][col]] : [];
       
       const moveData = insertMoveSchema.parse({
         roomId: room.id,
