@@ -32,6 +32,8 @@ export default function SudokuBoard({
   currentPlayer,
   isGameOver,
   solution,
+  selectedCell,
+  setSelectedCell,
   onCellSelect,
   onCellChange,
   onNoteChange,
@@ -39,7 +41,6 @@ export default function SudokuBoard({
   onUndo,
   onTogglePencil,
 }: SudokuBoardProps) {
-  const [selectedCell, setSelectedCell] = useState<{row: number, col: number} | null>(null);
   const [pendingNotes, setPendingNotes] = useState<number[]>([]);
   const [localHighlightedNumber, setLocalHighlightedNumber] = useState<number | null>(null);
   
@@ -113,9 +114,13 @@ export default function SudokuBoard({
       if (numValue !== null && currentCellValue === numValue) {
         // If the same number is entered, delete it (toggle deletion)
         onCellChange(row, col, null);
+        // Update highlighting immediately after deletion
+        setLocalHighlightedNumber(null);
       } else {
         // Place the new number
         onCellChange(row, col, numValue);
+        // Update highlighting immediately after placing number
+        setLocalHighlightedNumber(numValue);
       }
     }
   };
@@ -277,6 +282,9 @@ export default function SudokuBoard({
     if (!newMode) {
       setPendingNotes([]);
     }
+    
+    // Maintain the selected cell after toggling pencil mode
+    // No need to change selectedCell state as it's now managed by parent
   };
 
   // Handle keyboard input focus
@@ -436,9 +444,13 @@ export default function SudokuBoard({
                       if (currentValue === num) {
                         // Same number - delete it
                         onCellChange(selectedCell.row, selectedCell.col, null);
+                        // Update highlighting immediately after deletion
+                        setLocalHighlightedNumber(null);
                       } else {
                         // Different number - place it
                         onCellChange(selectedCell.row, selectedCell.col, num);
+                        // Update highlighting immediately after placing number
+                        setLocalHighlightedNumber(num);
                       }
                     }
                   }

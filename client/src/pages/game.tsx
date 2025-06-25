@@ -262,21 +262,10 @@ export default function Game() {
     if (currentPlayer) {
       togglePencilMutation.mutate(enabled);
       
-      // Force re-selection of current cell to ensure proper state sync
-      if (selectedCell) {
-        const { row, col } = selectedCell;
-        // Re-trigger selection to refresh state
-        setTimeout(() => {
-          setSelectedCell({ row, col });
-          
-          // Also update server selection to ensure sync
-          const board = gameState?.room.board as number[][];
-          const highlightedNumber = board && board[row] && board[row][col] !== 0 ? board[row][col] : null;
-          updateSelectionMutation.mutate({ row, col, highlightedNumber });
-        }, 50);
-      }
+      // Don't clear selected cell when toggling pencil mode
+      // This fixes the bug where selection is lost after mode change
     }
-  }, [currentPlayer, togglePencilMutation, selectedCell, gameState, updateSelectionMutation]);
+  }, [currentPlayer, togglePencilMutation]);
 
   const handleLeaveRoom = () => {
     leaveRoomMutation.mutate();
