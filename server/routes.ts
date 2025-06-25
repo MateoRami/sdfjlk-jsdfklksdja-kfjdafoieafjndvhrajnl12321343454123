@@ -174,6 +174,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const roomNotes = room.notes as number[][][];
       const solution = room.solution as number[][];
       const incorrectCells = [...(room.incorrectCells as boolean[][] || Array(9).fill(null).map(() => Array(9).fill(false)))];
+      
+      // Store original state before making changes (for undo functionality)
+      const originalBoard = [...(room.board as number[][])];
+      const originalNotes = (room.notes as number[][][]).map(row => row.map(cell => [...(cell || [])]));
+      const originalIncorrectCells = [...(room.incorrectCells as boolean[][] || Array(9).fill(null).map(() => Array(9).fill(false)))];
+      
       let isCorrect = true;
       let newErrors = room.errors;
 
@@ -242,7 +248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.updateRoom(room.id, updateData);
 
-      // Record move
+      // Record move with previous state for undo functionality
       const moveData = insertMoveSchema.parse({
         roomId: room.id,
         playerId,
@@ -252,6 +258,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: moveType === 'note' ? notes : null,
         moveType,
         isCorrect,
+        // Store previous state for undo
+        previousValue: originalBoard[row][col] || null,
+        previousNotes: originalNotes[row] && originalNotes[row][col] ? [...originalNotes[row][col]] : null,
+        previousIncorrect: originalIncorrectCells[row] && originalIncorrectCells[row][col] || false,
       });
 
       await storage.createMove(moveData);
@@ -359,7 +369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Undo last move
+  // Undo last move - each player can only undo their own last move
   app.post("/api/rooms/:roomId/undo/:playerId", async (req, res) => {
     try {
       const roomId = parseInt(req.params.roomId);
@@ -370,34 +380,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Room not found" });
       }
 
-      // Get player's last move
-      const playerMoves = Array.from(storage['moves'].values())
-        .filter(move => move.roomId === roomId && move.playerId === playerId)
-        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      if (gameState.room.isGameOver) {
+        return res.status(400).json({ message: "Cannot undo moves after game is over" });
+      }
 
-      if (playerMoves.length === 0) {
+      // Get player's last move only
+      const lastMove = await storage.getLastPlayerMove(roomId, playerId);
+      if (!lastMove) {
         return res.status(400).json({ message: "No moves to undo" });
       }
 
-      const lastMove = playerMoves[0];
       const room = gameState.room;
       const board = room.board as number[][];
       const roomNotes = room.notes as number[][][];
+      const incorrectCells = room.incorrectCells as boolean[][];
 
-      // Revert the move
-      if (lastMove.moveType === 'number') {
-        board[lastMove.row][lastMove.col] = 0;
-      } else if (lastMove.moveType === 'note') {
-        roomNotes[lastMove.row][lastMove.col] = [];
+      // Restore the cell to its previous state completely
+      const { row, col } = lastMove;
+      
+      // Restore previous value
+      board[row][col] = lastMove.previousValue || 0;
+      
+      // Restore previous notes
+      roomNotes[row][col] = Array.isArray(lastMove.previousNotes) ? [...lastMove.previousNotes] : [];
+      
+      // Restore previous incorrect state
+      incorrectCells[row][col] = lastMove.previousIncorrect || false;
+
+      // If we're undoing a number placement that was correct, we need to restore notes
+      // that might have been removed from related cells
+      if (lastMove.moveType === 'number' && lastMove.value && lastMove.isCorrect) {
+        // This is more complex - we'd need to track which notes were removed
+        // For now, we'll just restore the cell itself
       }
 
       // Remove the move from storage
-      storage['moves'].delete(lastMove.id);
+      await storage.deleteMove(lastMove.id);
 
-      // Update room
+      // Recalculate auto-locked cells after undo
+      const currentLocked = room.lockedCells as boolean[][];
+      const newLockedCells = getAutoLockCells(board, createLockedCells(board));
+
+      // Update room with restored state
       await storage.updateRoom(room.id, {
         board,
         notes: roomNotes,
+        incorrectCells,
+        lockedCells: newLockedCells,
+        errors: Math.max(0, (room.errors || 0) - (lastMove.isCorrect ? 0 : 1)), // Decrease errors if undoing incorrect move
       });
 
       // Get updated game state

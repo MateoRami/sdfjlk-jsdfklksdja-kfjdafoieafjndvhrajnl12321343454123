@@ -255,7 +255,9 @@ export default function Game() {
   };
 
   const handleUndo = () => {
-    undoMutation.mutate();
+    if (currentPlayer) {
+      undoMutation.mutate();
+    }
   };
 
   const handleTogglePencil = useCallback((enabled: boolean) => {

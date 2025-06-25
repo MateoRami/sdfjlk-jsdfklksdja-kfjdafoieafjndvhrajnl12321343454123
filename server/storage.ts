@@ -27,6 +27,8 @@ export interface IStorage {
   // Move operations
   createMove(move: InsertMove): Promise<Move>;
   getRecentMoves(roomId: number, limit?: number): Promise<Move[]>;
+  getLastPlayerMove(roomId: number, playerId: number): Promise<Move | undefined>;
+  deleteMove(moveId: number): Promise<void>;
   
   // Game state
   getGameState(roomId: number): Promise<GameState | undefined>;
@@ -113,10 +115,25 @@ export class MemStorage implements IStorage {
       value: insertMove.value || null,
       notes: insertMove.notes || null,
       moveType: insertMove.moveType || 'number',
+      previousValue: insertMove.previousValue || null,
+      previousNotes: insertMove.previousNotes || null,
+      previousIncorrect: insertMove.previousIncorrect || false,
       timestamp: new Date(),
     };
     this.moves.set(id, move);
     return move;
+  }
+
+  // Get last move for a specific player
+  async getLastPlayerMove(roomId: number, playerId: number): Promise<Move | undefined> {
+    return Array.from(this.moves.values())
+      .filter(move => move.roomId === roomId && move.playerId === playerId)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())[0];
+  }
+
+  // Delete a specific move
+  async deleteMove(moveId: number): Promise<void> {
+    this.moves.delete(moveId);
   }
 
   async getRecentMoves(roomId: number, limit = 10): Promise<Move[]> {

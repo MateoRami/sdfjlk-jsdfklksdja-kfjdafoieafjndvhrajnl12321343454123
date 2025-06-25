@@ -397,7 +397,7 @@ export default function SudokuBoard({
           size="sm"
           onClick={onUndo}
           disabled={isGameOver}
-          title="Deshacer último movimiento (Tecla: U)"
+          title="Deshacer último movimiento personal (Tecla: U)"
         >
           <Undo2 className="w-4 h-4 mr-1" />
           Deshacer
@@ -414,7 +414,7 @@ export default function SudokuBoard({
 
       {/* Hotkeys help */}
       <div className="text-center text-xs text-gray-500 mb-2">
-        <strong>Atajos:</strong> <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">P</kbd> Lápiz | <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">C</kbd> Borrar | <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">U</kbd> Deshacer | <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">Esc</kbd> Deseleccionar | <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">1-9</kbd> Números
+        <strong>Atajos:</strong> <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">P</kbd> Lápiz | <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">C</kbd> Borrar | <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">U</kbd> Deshacer personal | <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">Esc</kbd> Deseleccionar | <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">1-9</kbd> Números
       </div>
 
       {/* Sudoku Board */}
