@@ -442,13 +442,7 @@ export default function Game() {
                       <div className="text-sm text-gray-600">Errores cometidos</div>
                     </div>
                   </div>
-                  <p className="text-red-700 mb-4">Se alcanzaron 3 errores. ¡Mejor suerte la próxima vez!</p>
-                  <button
-                    onClick={() => setShowRoomModal(true)}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  >
-                    Jugar Nueva Partida
-                  </button>
+                  <p className="text-red-700">Se alcanzaron 3 errores. ¡Mejor suerte la próxima vez!</p>
                 </div>
               )}
 
@@ -473,6 +467,14 @@ export default function Game() {
               />
             </div>
           </div>
+
+          {/* New Game Modal */}
+          <NewGameModal
+            isOpen={showNewGameModal}
+            onClose={() => setShowNewGameModal(false)}
+            onStartNewGame={newGameMutation.mutate}
+            isLoading={newGameMutation.isPending}
+          />
 
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
